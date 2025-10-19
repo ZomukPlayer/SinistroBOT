@@ -163,7 +163,7 @@ async def moeda_slash(interaction: discord.Interaction):
 # ============ COMANDO: SORTEIO ============
 @bot.command(name='sorteio')
 async def sorteio_prefix(ctx, *, usuarios: str = None):
-    """Sorteia um vencedor entre usuários mencionados"""
+    """Sorteia um vencedor entre usuários mencionados (até 50)"""
     if not ctx.message.mentions:
         embed = discord.Embed(
             title="❌ Erro",
@@ -173,33 +173,77 @@ async def sorteio_prefix(ctx, *, usuarios: str = None):
         await ctx.send(embed=embed)
         return
     
+    if len(ctx.message.mentions) > 50:
+        embed = discord.Embed(
+            title="❌ Erro",
+            description="Máximo de 50 usuários permitidos!",
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
+        return
+    
+    total_usuarios = len(ctx.message.mentions)
+    porcentagem = (1 / total_usuarios) * 100
     vencedor = random.choice(ctx.message.mentions)
     
     embed = discord.Embed(
         title="🎉 Resultado do Sorteio",
-        description=f"O vencedor é: {vencedor.mention}",
+        description=f"O vencedor é: {vencedor.mention}\n📊 Chance: {porcentagem:.2f}%",
         color=discord.Color.purple()
     )
     embed.set_thumbnail(url=vencedor.avatar.url)
+    embed.add_field(name="Total de participantes", value=total_usuarios, inline=True)
     
     await ctx.send(embed=embed)
 
-@bot.tree.command(name="sorteio", description="Sorteia um vencedor")
-@app_commands.describe(usuario1="Primeiro usuário", usuario2="Segundo usuário", usuario3="Terceiro usuário (opcional)")
-async def sorteio_slash(interaction: discord.Interaction, usuario1: discord.User, usuario2: discord.User, usuario3: discord.User = None):
+@bot.tree.command(name="sorteio", description="Sorteia um vencedor entre usuários (até 50)")
+@app_commands.describe(
+    u1="Usuário 1", u2="Usuário 2", u3="Usuário 3", u4="Usuário 4", u5="Usuário 5",
+    u6="Usuário 6", u7="Usuário 7", u8="Usuário 8", u9="Usuário 9", u10="Usuário 10",
+    u11="Usuário 11", u12="Usuário 12", u13="Usuário 13", u14="Usuário 14", u15="Usuário 15",
+    u16="Usuário 16", u17="Usuário 17", u18="Usuário 18", u19="Usuário 19", u20="Usuário 20",
+    u21="Usuário 21", u22="Usuário 22", u23="Usuário 23", u24="Usuário 24", u25="Usuário 25",
+    u26="Usuário 26", u27="Usuário 27", u28="Usuário 28", u29="Usuário 29", u30="Usuário 30",
+    u31="Usuário 31", u32="Usuário 32", u33="Usuário 33", u34="Usuário 34", u35="Usuário 35",
+    u36="Usuário 36", u37="Usuário 37", u38="Usuário 38", u39="Usuário 39", u40="Usuário 40",
+    u41="Usuário 41", u42="Usuário 42", u43="Usuário 43", u44="Usuário 44", u45="Usuário 45",
+    u46="Usuário 46", u47="Usuário 47", u48="Usuário 48", u49="Usuário 49", u50="Usuário 50"
+)
+async def sorteio_slash(
+    interaction: discord.Interaction,
+    u1: discord.User, u2: discord.User, u3: discord.User = None, u4: discord.User = None,
+    u5: discord.User = None, u6: discord.User = None, u7: discord.User = None, u8: discord.User = None,
+    u9: discord.User = None, u10: discord.User = None, u11: discord.User = None, u12: discord.User = None,
+    u13: discord.User = None, u14: discord.User = None, u15: discord.User = None, u16: discord.User = None,
+    u17: discord.User = None, u18: discord.User = None, u19: discord.User = None, u20: discord.User = None,
+    u21: discord.User = None, u22: discord.User = None, u23: discord.User = None, u24: discord.User = None,
+    u25: discord.User = None, u26: discord.User = None, u27: discord.User = None, u28: discord.User = None,
+    u29: discord.User = None, u30: discord.User = None, u31: discord.User = None, u32: discord.User = None,
+    u33: discord.User = None, u34: discord.User = None, u35: discord.User = None, u36: discord.User = None,
+    u37: discord.User = None, u38: discord.User = None, u39: discord.User = None, u40: discord.User = None,
+    u41: discord.User = None, u42: discord.User = None, u43: discord.User = None, u44: discord.User = None,
+    u45: discord.User = None, u46: discord.User = None, u47: discord.User = None, u48: discord.User = None,
+    u49: discord.User = None, u50: discord.User = None
+):
     """Sorteia um vencedor entre usuários (Slash Command)"""
-    usuarios = [usuario1, usuario2]
-    if usuario3:
-        usuarios.append(usuario3)
+    usuarios = [u1, u2]
+    for u in [u3, u4, u5, u6, u7, u8, u9, u10, u11, u12, u13, u14, u15, u16, u17, u18, u19, u20,
+              u21, u22, u23, u24, u25, u26, u27, u28, u29, u30, u31, u32, u33, u34, u35, u36, u37, u38, u39, u40,
+              u41, u42, u43, u44, u45, u46, u47, u48, u49, u50]:
+        if u:
+            usuarios.append(u)
     
+    total_usuarios = len(usuarios)
+    porcentagem = (1 / total_usuarios) * 100
     vencedor = random.choice(usuarios)
     
     embed = discord.Embed(
         title="🎉 Resultado do Sorteio",
-        description=f"O vencedor é: {vencedor.mention}",
+        description=f"O vencedor é: {vencedor.mention}\n📊 Chance: {porcentagem:.2f}%",
         color=discord.Color.purple()
     )
     embed.set_thumbnail(url=vencedor.avatar.url)
+    embed.add_field(name="Total de participantes", value=total_usuarios, inline=True)
     
     await interaction.response.send_message(embed=embed)
 
@@ -347,20 +391,5 @@ async def sumiu_slash(interaction: discord.Interaction):
         )
         await interaction.response.send_message(embed=embed)
 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-token = os.getenv('DISCORD_TOKEN')
-bot.run(token)
-```
-
-3. Commit as mudanças
-
-**Passo 3: Atualizar `requirements.txt`**
-1. Edite o `requirements.txt`
-2. Adicione:
-```
-discord.py
-python-dotenv
-
+# Substituir 'SEU_TOKEN_AQUI' pelo seu token real
+bot.run('SEU_TOKEN_AQUI')
