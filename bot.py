@@ -392,4 +392,20 @@ async def sumiu_slash(interaction: discord.Interaction):
         await interaction.response.send_message(embed=embed)
 
 # Substituir 'SEU_TOKEN_AQUI' pelo seu token real
-bot.run('SEU_TOKEN_AQUI')
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+token = os.getenv('DISCORD_TOKEN')
+bot.run(token)
+```
+
+3. Commit as mudanças
+
+**Passo 3: Atualizar `requirements.txt`**
+1. Edite o `requirements.txt`
+2. Adicione:
+```
+discord.py
+python-dotenv
+
