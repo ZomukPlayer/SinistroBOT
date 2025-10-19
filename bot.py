@@ -1,42 +1,4 @@
-@bot.command(name='help')
-async def help_prefix(ctx):
-    embed = discord.Embed(
-        title="Perdido? A gente te ajuda!",
-        color=0xd66666,
-        description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
-                    "**Diversão**\n"
-                    "MS!piada\n"
-                    "MS!sorteio\n"
-                    "MS!moeda\n"
-                    "MS!sumiu\n"
-                    "MS!dados\n"
-                    "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
-                    "**Servidor**\n"
-                    "MS!user (usuario)\n"
-                    "MS!serverinfo"
-    )
-    embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
-    await ctx.send(embed=embed)
-
-@bot.tree.command(name="help", description="Mostra todos os comandos disponíveis")
-async def help_slash(interaction: discord.Interaction):
-    embed = discord.Embed(
-        title="Perdido? A gente te ajuda!",
-        color=0xd66666,
-        description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
-                    "**Diversão**\n"
-                    "MS!piada\n"
-                    "MS!sorteio\n"
-                    "MS!moeda\n"
-                    "MS!sumiu\n"
-                    "MS!dados\n"
-                    "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
-                    "**Servidor**\n"
-                    "MS!user (usuario)\n"
-                    "MS!serverinfo"
-    )
-    embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
-    await interaction.response.send_message(embed=embed)import discord
+import discord
 from discord.ext import commands
 from discord import app_commands
 import asyncio
@@ -84,6 +46,46 @@ async def on_member_join(member):
     embed.set_footer(text=f"ID: {member.id}")
     
     await welcome_channel.send(f"Olá {member.mention}!", embed=embed)
+
+@bot.command(name='help')
+async def help_prefix(ctx):
+    embed = discord.Embed(
+        title="Perdido? A gente te ajuda!",
+        color=0xd66666,
+        description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
+                    "**Diversão**\n"
+                    "MS!piada\n"
+                    "MS!sorteio\n"
+                    "MS!moeda\n"
+                    "MS!sumiu\n"
+                    "MS!dados\n"
+                    "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
+                    "**Servidor**\n"
+                    "MS!user (usuario)\n"
+                    "MS!serverinfo"
+    )
+    embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
+    await ctx.send(embed=embed)
+
+@bot.tree.command(name="help", description="Mostra todos os comandos disponíveis")
+async def help_slash(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="Perdido? A gente te ajuda!",
+        color=0xd66666,
+        description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
+                    "**Diversão**\n"
+                    "MS!piada\n"
+                    "MS!sorteio\n"
+                    "MS!moeda\n"
+                    "MS!sumiu\n"
+                    "MS!dados\n"
+                    "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
+                    "**Servidor**\n"
+                    "MS!user (usuario)\n"
+                    "MS!serverinfo"
+    )
+    embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
+    await interaction.response.send_message(embed=embed)
 
 @bot.command(name='dados')
 async def dados_prefix(ctx):
