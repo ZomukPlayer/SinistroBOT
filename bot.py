@@ -47,45 +47,32 @@ async def on_member_join(member):
     
     await welcome_channel.send(f"Olá {member.mention}!", embed=embed)
 
-@bot.command(name='help')
-async def help_prefix(ctx):
-    embed = discord.Embed(
-        title="Perdido? A gente te ajuda!",
-        color=0xd66666,
-        description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
-                    "**Diversão**\n"
-                    "MS!piada\n"
-                    "MS!sorteio\n"
-                    "MS!moeda\n"
-                    "MS!sumiu\n"
-                    "MS!dados\n"
-                    "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
-                    "**Servidor**\n"
-                    "MS!user (usuario)\n"
-                    "MS!serverinfo"
-    )
-    embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
-    await ctx.send(embed=embed)
+class MeuHelp(commands.DefaultHelpCommand):
+    def __init__(self):
+        super().__init__()
+        self.no_category = "Sem Categoria"
+    
+    async def send_pages(self):
+        destination = self.get_destination()
+        embed = discord.Embed(
+            title="Perdido? A gente te ajuda!",
+            color=0xd66666,
+            description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
+                        "**Diversão**\n"
+                        "MS!piada\n"
+                        "MS!sorteio\n"
+                        "MS!moeda\n"
+                        "MS!sumiu\n"
+                        "MS!dados\n"
+                        "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
+                        "**Servidor**\n"
+                        "MS!user (usuario)\n"
+                        "MS!serverinfo"
+        )
+        embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
+        await destination.send(embed=embed)
 
-@bot.tree.command(name="help", description="Mostra todos os comandos disponíveis")
-async def help_slash(interaction: discord.Interaction):
-    embed = discord.Embed(
-        title="Perdido? A gente te ajuda!",
-        color=0xd66666,
-        description="Os comandos aqui em baixo são todos os disponíveis:\n\n"
-                    "**Diversão**\n"
-                    "MS!piada\n"
-                    "MS!sorteio\n"
-                    "MS!moeda\n"
-                    "MS!sumiu\n"
-                    "MS!dados\n"
-                    "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
-                    "**Servidor**\n"
-                    "MS!user (usuario)\n"
-                    "MS!serverinfo"
-    )
-    embed.set_footer(text="Equipe de ajuda da Minecraft Sinistro")
-    await interaction.response.send_message(embed=embed)
+bot.help_command = MeuHelp()
 
 @bot.command(name='dados')
 async def dados_prefix(ctx):
