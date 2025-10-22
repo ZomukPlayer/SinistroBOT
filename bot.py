@@ -498,7 +498,7 @@ async def aventura_prefix(ctx):
         view = BotoesCaverna(user_id)
     
     await ctx.send(embed=embed, view=view)
-    token = os.getenv('DISCORD_TOKEN')
+token = os.getenv('DISCORD_TOKEN')
 print("Token carregado?", "CLARO" if token else "CLARO QUE NAO NE BOT RUIM")
 print("Abaixo tem meu mano que vai tentar rodar o bot kkkkkkkkk")
 bot.run(token)
