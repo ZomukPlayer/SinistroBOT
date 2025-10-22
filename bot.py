@@ -6,9 +6,6 @@ import random
 import os
 from dotenv import load_dotenv
 
-print("não lagou aindaa")
-print("Carregando variáveis carrega logoo")
-
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -269,9 +266,24 @@ async def sumiu_slash(interaction: discord.Interaction):
 aventuras = {}
 
 class BotoesAventura(discord.ui.View):
-    def __init__(self, user_id):
+    def __init__(self, user_id, message=None):
         super().__init__(timeout=None)
         self.user_id = user_id
+        self.message = message
+    
+    async def atualizar_mensagem(self, interaction):
+        player = aventuras[self.user_id]
+        embed = discord.Embed(
+            title="🌲 Floresta do Minecraft",
+            description=f"**Jogador:** {player['nome']}\n"
+                       f"**HP:** ❤️ {player['hp']}/20\n\n"
+                       f"🪵 Madeira: {player['itens']['🪵']}\n"
+                       f"🪨 Pedra: {player['itens']['🪨']}\n"
+                       f"💎 Diamante: {player['itens']['💎']}\n\n"
+                       "Escolha uma ação abaixo:",
+            color=0x00ff00
+        )
+        await self.message.edit(embed=embed)
     
     @discord.ui.button(label="🪓 Cortar Árvore", style=discord.ButtonStyle.green)
     async def cortar_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -289,6 +301,7 @@ class BotoesAventura(discord.ui.View):
             color=0x8B4513
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.atualizar_mensagem(interaction)
     
     @discord.ui.button(label="🗺️ Explorar Caverna", style=discord.ButtonStyle.primary)
     async def explorar_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -299,7 +312,18 @@ class BotoesAventura(discord.ui.View):
         player = aventuras[self.user_id]
         player['local'] = 'caverna'
         
-        await interaction.response.send_message("🗺️ Você entrou na caverna! Use `MS!aventura` de novo.", ephemeral=True)
+        embed = discord.Embed(
+            title="🗻 Caverna Profunda",
+            description=f"Você está em uma caverna escura e perigosa.\n\n**HP:** ❤️ {player['hp']}/20\n\n"
+                       f"🪵 Madeira: {player['itens']['🪵']}\n"
+                       f"🪨 Pedra: {player['itens']['🪨']}\n"
+                       f"💎 Diamante: {player['itens']['💎']}\n\n"
+                       "Você ouve sons estranhos...",
+            color=0x808080
+        )
+        new_view = BotoesCaverna(self.user_id, self.message)
+        await self.message.edit(embed=embed, view=new_view)
+        await interaction.response.send_message("🗺️ Você entrou na caverna!", ephemeral=True)
     
     @discord.ui.button(label="🔨 Craftar", style=discord.ButtonStyle.secondary)
     async def craftar_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -320,11 +344,58 @@ class BotoesAventura(discord.ui.View):
         
         view = BotoesCraft(self.user_id)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+    
+    @discord.ui.button(label="❤️ Comer (5🪵)", style=discord.ButtonStyle.danger, row=1)
+    async def comer_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("❌ Esta aventura não é sua!", ephemeral=True)
+            return
+        
+        player = aventuras[self.user_id]
+        
+        if player['itens']['🪵'] >= 5:
+            if player['hp'] >= 20:
+                await interaction.response.send_message("❌ Seu HP já está cheio!", ephemeral=True)
+                return
+            
+            player['itens']['🪵'] -= 5
+            cura = random.randint(5, 10)
+            player['hp'] = min(20, player['hp'] + cura)
+            
+            embed = discord.Embed(
+                title="❤️ Comendo...",
+                description=f"Você comeu e recuperou **{cura} HP**!\n\n❤️ HP: {player['hp']}/20",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await self.atualizar_mensagem(interaction)
+        else:
+            embed = discord.Embed(
+                title="❌ Itens Insuficientes",
+                description="Você precisa de 5x 🪵 Madeira para comer!",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
 class BotoesCaverna(discord.ui.View):
-    def __init__(self, user_id):
+    def __init__(self, user_id, message=None):
         super().__init__(timeout=None)
         self.user_id = user_id
+        self.message = message
+    
+    async def atualizar_mensagem(self, interaction):
+        player = aventuras[self.user_id]
+        embed = discord.Embed(
+            title="🗻 Caverna Profunda",
+            description=f"**Jogador:** {player['nome']}\n"
+                       f"**HP:** ❤️ {player['hp']}/20\n\n"
+                       f"🪵 Madeira: {player['itens']['🪵']}\n"
+                       f"🪨 Pedra: {player['itens']['🪨']}\n"
+                       f"💎 Diamante: {player['itens']['💎']}\n\n"
+                       "Você ouve sons estranhos...",
+            color=0x808080
+        )
+        await self.message.edit(embed=embed)
     
     @discord.ui.button(label="⛏️ Minerar", style=discord.ButtonStyle.primary)
     async def minerar_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -353,6 +424,7 @@ class BotoesCaverna(discord.ui.View):
             )
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.atualizar_mensagem(interaction)
     
     @discord.ui.button(label="⚔️ Lutar", style=discord.ButtonStyle.danger)
     async def lutar_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -391,6 +463,7 @@ class BotoesCaverna(discord.ui.View):
                 embed.description += "\n\n💀 **VOCÊ MORREU!** Seus itens foram perdidos."
         
         await interaction.response.send_message(embed=embed, ephemeral=True)
+        await self.atualizar_mensagem(interaction)
     
     @discord.ui.button(label="🏃 Voltar", style=discord.ButtonStyle.secondary)
     async def voltar_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -401,7 +474,51 @@ class BotoesCaverna(discord.ui.View):
         player = aventuras[self.user_id]
         player['local'] = 'floresta'
         
-        await interaction.response.send_message("🏃 Você voltou para a floresta! Use `MS!aventura` de novo.", ephemeral=True)
+        embed = discord.Embed(
+            title="🌲 Floresta do Minecraft",
+            description=f"**Jogador:** {player['nome']}\n"
+                       f"**HP:** ❤️ {player['hp']}/20\n\n"
+                       f"🪵 Madeira: {player['itens']['🪵']}\n"
+                       f"🪨 Pedra: {player['itens']['🪨']}\n"
+                       f"💎 Diamante: {player['itens']['💎']}\n\n"
+                       "Escolha uma ação abaixo:",
+            color=0x00ff00
+        )
+        new_view = BotoesAventura(self.user_id, self.message)
+        await self.message.edit(embed=embed, view=new_view)
+        await interaction.response.send_message("🏃 Você voltou para a floresta!", ephemeral=True)
+    
+    @discord.ui.button(label="❤️ Comer (5🪵)", style=discord.ButtonStyle.success, row=1)
+    async def comer_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message("❌ Esta aventura não é sua!", ephemeral=True)
+            return
+        
+        player = aventuras[self.user_id]
+        
+        if player['itens']['🪵'] >= 5:
+            if player['hp'] >= 20:
+                await interaction.response.send_message("❌ Seu HP já está cheio!", ephemeral=True)
+                return
+            
+            player['itens']['🪵'] -= 5
+            cura = random.randint(5, 10)
+            player['hp'] = min(20, player['hp'] + cura)
+            
+            embed = discord.Embed(
+                title="❤️ Comendo...",
+                description=f"Você comeu e recuperou **{cura} HP**!\n\n❤️ HP: {player['hp']}/20",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await self.atualizar_mensagem(interaction)
+        else:
+            embed = discord.Embed(
+                title="❌ Itens Insuficientes",
+                description="Você precisa de 5x 🪵 Madeira para comer!",
+                color=0xff0000
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
 class BotoesCraft(discord.ui.View):
     def __init__(self, user_id):
@@ -464,41 +581,64 @@ class BotoesCraft(discord.ui.View):
 async def aventura_prefix(ctx):
     user_id = ctx.author.id
     
-    if user_id not in aventuras:
-        aventuras[user_id] = {
-            'hp': 20,
-            'itens': {'🪵': 0, '🪨': 0, '⛏️': 0, '🗡️': 0, '💎': 0},
-            'local': 'floresta'
-        }
+    # Reseta o jogo toda vez que usa o comando
+    aventuras[user_id] = {
+        'hp': 20,
+        'itens': {'🪵': 0, '🪨': 0, '⛏️': 0, '🗡️': 0, '💎': 0},
+        'local': 'floresta',
+        'nome': ctx.author.display_name
+    }
     
     player = aventuras[user_id]
     
-    if player['local'] == 'floresta':
-        embed = discord.Embed(
-            title="🌲 Floresta do Minecraft",
-            description=f"Você está em uma floresta densa.\n\n**HP:** ❤️ {player['hp']}/20\n\n"
-                       f"🪵 Madeira: {player['itens']['🪵']}\n"
-                       f"🪨 Pedra: {player['itens']['🪨']}\n"
-                       f"💎 Diamante: {player['itens']['💎']}\n\n"
-                       "Escolha uma ação abaixo:",
-            color=0x00ff00
-        )
-        view = BotoesAventura(user_id)
+    embed = discord.Embed(
+        title="🌲 Floresta do Minecraft",
+        description=f"**Jogador:** {player['nome']}\n"
+                   f"**HP:** ❤️ {player['hp']}/20\n\n"
+                   f"🪵 Madeira: {player['itens']['🪵']}\n"
+                   f"🪨 Pedra: {player['itens']['🪨']}\n"
+                   f"💎 Diamante: {player['itens']['💎']}\n\n"
+                   "Você acordou em uma floresta densa.\nEscolha uma ação abaixo:",
+        color=0x00ff00
+    )
+    message = await ctx.send(embed=embed)
+    view = BotoesAventura(user_id, message)
+    await message.edit(view=view)
+
+@bot.tree.command(name="aventura", description="Minecraft 2")
+async def aventura_slash(interaction: discord.Interaction):
+    user_id = interaction.user.id
     
-    elif player['local'] == 'caverna':
-        embed = discord.Embed(
-            title="🗻 Caverna Profunda",
-            description=f"Você está em uma caverna escura e perigosa.\n\n**HP:** ❤️ {player['hp']}/20\n\n"
-                       f"🪵 Madeira: {player['itens']['🪵']}\n"
-                       f"🪨 Pedra: {player['itens']['🪨']}\n"
-                       f"💎 Diamante: {player['itens']['💎']}\n\n"
-                       "Você ouve sons estranhos...",
+    # Reseta o jogo toda vez que usa o comando
+    aventuras[user_id] = {
+        'hp': 20,
+        'itens': {'🪵': 0, '🪨': 0, '⛏️': 0, '🗡️': 0, '💎': 0},
+        'local': 'floresta',
+        'nome': interaction.user.display_name
+    }
+    
+    player = aventuras[user_id]
+    
+    embed = discord.Embed(
+        title="🌲 Floresta do Minecraft",
+        description=f"**Jogador:** {player['nome']}\n"
+                   f"**HP:** ❤️ {player['hp']}/20\n\n"
+                   f"🪵 Madeira: {player['itens']['🪵']}\n"
+                   f"🪨 Pedra: {player['itens']['🪨']}\n"
+                   f"💎 Diamante: {player['itens']['💎']}\n\n"
+                   "Você acordou em uma floresta densa.\nEscolha uma ação abaixo:",
+        color=0x00ff00
+    )
+    await interaction.response.send_message(embed=embed)
+    message = await interaction.original_response()
+    view = BotoesAventura(user_id, message)
+    await message.edit(view=view)
             color=0x808080
         )
         view = BotoesCaverna(user_id)
     
-    await ctx.send(embed=embed, view=view)
+    await interaction.response.send_message(embed=embed, view=view)
 token = os.getenv('DISCORD_TOKEN')
 print("Token carregado?", "CLARO" if token else "CLARO QUE NAO NE BOT RUIM")
-print("Abaixo tem meu mano que vai tentar rodar o bot kkkkkkkkk")
+print("minecraft 2 + bot di discord = ✋😐✋ Absolute Cinema")
 bot.run(token)
