@@ -536,8 +536,8 @@ class BotoesCraft(discord.ui.View):
         player = aventuras[self.user_id]
         
         if player['itens']['🪵'] >= 3 and player['itens']['🪨'] >= 2:
-            player['itens']['🪵'] -= 3
-            player['itens']['🪨'] -= 2
+            player['itens']['🪵'] -= 2
+            player['itens']['🪨'] -= 3
             player['itens']['⛏️'] += 1
             embed = discord.Embed(
                 title="✅ Craft Concluído!",
@@ -547,7 +547,7 @@ class BotoesCraft(discord.ui.View):
         else:
             embed = discord.Embed(
                 title="❌ Itens Insuficientes",
-                description="Você precisa de 3x 🪵 e 2x 🪨",
+                description="Você precisa de 2x 🪵 e 3x 🪨",
                 color=0xff0000
             )
         
@@ -562,9 +562,10 @@ class BotoesCraft(discord.ui.View):
         player = aventuras[self.user_id]
         
         if player['itens']['🪵'] >= 2 and player['itens']['💎'] >= 1:
-            player['itens']['🪵'] -= 2
-            player['itens']['💎'] -= 1
-            player['itens']['🗡️'] += 1embed = discord.Embed(
+            player['itens']['🪵'] -= 1
+            player['itens']['💎'] -= 2
+            player['itens']['🗡️'] += 1
+            embed = discord.Embed(
                 title="✅ Craft Concluído!",
                 description="Você craftou uma **🗡️ Espada de Diamante**!",
                 color=0x00FFFF
@@ -572,7 +573,7 @@ class BotoesCraft(discord.ui.View):
         else:
             embed = discord.Embed(
                 title="❌ Itens Insuficientes",
-                description="Você precisa de 2x 🪵 e 1x 💎",
+                description="Você precisa de 1x 🪵 e 2x 💎",
                 color=0xff0000
             )
         
@@ -637,3 +638,4 @@ token = os.getenv('DISCORD_TOKEN')
 print("Token carregado?", "CLARO" if token else "CLARO QUE NAO NE BOT RUIM")
 print("minecraft 2 + bot di discord = ✋😐✋ Absolute Cinema")
 bot.run(token)
+
