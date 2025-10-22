@@ -604,12 +604,37 @@ async def aventura_prefix(ctx):
     message = await ctx.send(embed=embed)
     view = BotoesAventura(user_id, message)
     await message.edit(view=view)
+    @bot.command(name='aventura')
+async def aventura_prefix(ctx):
+    user_id = ctx.author.id
+    
+    aventuras[user_id] = {
+        'hp': 20,
+        'itens': {'🪵': 0, '🪨': 0, '⛏️': 0, '🗡️': 0, '💎': 0},
+        'local': 'floresta',
+        'nome': ctx.author.display_name
+    }
+    
+    player = aventuras[user_id]
+    
+    embed = discord.Embed(
+        title="🌲 Floresta do Minecraft",
+        description=f"**Jogador:** {player['nome']}\n"
+                   f"**HP:** ❤️ {player['hp']}/20\n\n"
+                   f"🪵 Madeira: {player['itens']['🪵']}\n"
+                   f"🪨 Pedra: {player['itens']['🪨']}\n"
+                   f"💎 Diamante: {player['itens']['💎']}\n\n"
+                   "Você acordou em uma floresta densa.\nEscolha uma ação abaixo:",
+        color=0x00ff00
+    )
+    message = await ctx.send(embed=embed)
+    view = BotoesAventura(user_id, message)
+    await message.edit(view=view)
 
 @bot.tree.command(name="aventura", description="Minecraft 2")
 async def aventura_slash(interaction: discord.Interaction):
     user_id = interaction.user.id
     
-    # Reseta o jogo toda vez que usa o comando
     aventuras[user_id] = {
         'hp': 20,
         'itens': {'🪵': 0, '🪨': 0, '⛏️': 0, '🗡️': 0, '💎': 0},
@@ -633,11 +658,7 @@ async def aventura_slash(interaction: discord.Interaction):
     message = await interaction.original_response()
     view = BotoesAventura(user_id, message)
     await message.edit(view=view)
-            color=0x808080
-        )
-        view = BotoesCaverna(user_id)
-    
-    await interaction.response.send_message(embed=embed, view=view)
+
 token = os.getenv('DISCORD_TOKEN')
 print("Token carregado?", "CLARO" if token else "CLARO QUE NAO NE BOT RUIM")
 print("minecraft 2 + bot di discord = ✋😐✋ Absolute Cinema")
