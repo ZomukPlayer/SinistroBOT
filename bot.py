@@ -64,6 +64,7 @@ class MeuHelp(commands.DefaultHelpCommand):
                         "MS!moeda\n"
                         "MS!sumiu\n"
                         "MS!dados\n"
+                        "MS!aventura\n"
                         "MS!sorteio (usuario1, usuario2 até usuario50)\n\n"
                         "**Servidor**\n"
                         "MS!user (usuario)\n"
@@ -314,7 +315,8 @@ class BotoesAventura(discord.ui.View):
         
         embed = discord.Embed(
             title="🗻 Caverna Profunda",
-            description=f"Você está em uma caverna escura e perigosa.\n\n**HP:** ❤️ {player['hp']}/20\n\n"
+            description=f"**Jogador:** {player['nome']}\n"
+                       f"**HP:** ❤️ {player['hp']}/20\n\n"
                        f"🪵 Madeira: {player['itens']['🪵']}\n"
                        f"🪨 Pedra: {player['itens']['🪨']}\n"
                        f"💎 Diamante: {player['itens']['💎']}\n\n"
@@ -562,8 +564,7 @@ class BotoesCraft(discord.ui.View):
         if player['itens']['🪵'] >= 2 and player['itens']['💎'] >= 1:
             player['itens']['🪵'] -= 2
             player['itens']['💎'] -= 1
-            player['itens']['🗡️'] += 1
-            embed = discord.Embed(
+            player['itens']['🗡️'] += 1embed = discord.Embed(
                 title="✅ Craft Concluído!",
                 description="Você craftou uma **🗡️ Espada de Diamante**!",
                 color=0x00FFFF
@@ -578,33 +579,6 @@ class BotoesCraft(discord.ui.View):
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
 @bot.command(name='aventura')
-async def aventura_prefix(ctx):
-    user_id = ctx.author.id
-    
-    # Reseta o jogo toda vez que usa o comando
-    aventuras[user_id] = {
-        'hp': 20,
-        'itens': {'🪵': 0, '🪨': 0, '⛏️': 0, '🗡️': 0, '💎': 0},
-        'local': 'floresta',
-        'nome': ctx.author.display_name
-    }
-    
-    player = aventuras[user_id]
-    
-    embed = discord.Embed(
-        title="🌲 Floresta do Minecraft",
-        description=f"**Jogador:** {player['nome']}\n"
-                   f"**HP:** ❤️ {player['hp']}/20\n\n"
-                   f"🪵 Madeira: {player['itens']['🪵']}\n"
-                   f"🪨 Pedra: {player['itens']['🪨']}\n"
-                   f"💎 Diamante: {player['itens']['💎']}\n\n"
-                   "Você acordou em uma floresta densa.\nEscolha uma ação abaixo:",
-        color=0x00ff00
-    )
-    message = await ctx.send(embed=embed)
-    view = BotoesAventura(user_id, message)
-    await message.edit(view=view)
-    @bot.command(name='aventura')
 async def aventura_prefix(ctx):
     user_id = ctx.author.id
     
