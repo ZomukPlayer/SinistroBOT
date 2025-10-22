@@ -6,6 +6,9 @@ import random
 import os
 from dotenv import load_dotenv
 
+print("não lagou aindaa")
+print("Carregando variáveis carrega logoo")
+
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -495,3 +498,7 @@ async def aventura_prefix(ctx):
         view = BotoesCaverna(user_id)
     
     await ctx.send(embed=embed, view=view)
+    token = os.getenv('DISCORD_TOKEN')
+print("Token carregado?", "CLARO" if token else "CLARO QUE NAO NE BOT RUIM")
+print("Abaixo tem meu mano que vai tentar rodar o bot kkkkkkkkk")
+bot.run(token)
