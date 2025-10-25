@@ -114,7 +114,7 @@ async def sorteio(ctx):
         return
     
     total = len(ctx.message.mentions)
-    porcentagem = (1 / total) * 500
+    porcentagem = (1 / total) * 10
     vencedor = random.choice(ctx.message.mentions)
     
     embed = discord.Embed(
@@ -178,4 +178,5 @@ else:
     print("✅ Token carregado")
     print("🎮 Minecraft 2 - FASE 2.0 (Modular)")
     bot.run(token)
+
 
