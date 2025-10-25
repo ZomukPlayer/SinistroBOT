@@ -83,6 +83,7 @@ async def dados(ctx):
     import random
     d1, d2 = random.randint(1, 6), random.randint(1, 6)
     embed = discord.Embed(title="🎲 Dados", description=f"**Dado 1:** {d1}\n**Dado 2:** {d2}\n**Total:** {d1+d2}", color=discord.Color.blue())
+    embed.set_footer(text=f"Solicitado por {ctx.author.name}")
     await ctx.send(embed=embed)
 
 @bot.command(name='piada')
@@ -98,9 +99,63 @@ async def moeda(ctx):
     embed = discord.Embed(title="🪙 Moeda", description=resultado, color=discord.Color.yellow())
     await ctx.send(embed=embed)
 
+@bot.command(name='sorteio')
+async def sorteio(ctx):
+    """Sorteia um vencedor entre as pessoas mencionadas"""
+    import random
+    if not ctx.message.mentions:
+        embed = discord.Embed(title="❌ Erro", description="Mencione pelo menos um usuário!\n\nExemplo: `MS!sorteio @user1 @user2`", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        return
+    
+    if len(ctx.message.mentions) > 50:
+        embed = discord.Embed(title="❌ Erro", description="Máximo de 50 usuários!", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        return
+    
+    total = len(ctx.message.mentions)
+    porcentagem = (1 / total) * 100
+    vencedor = random.choice(ctx.message.mentions)
+    
+    embed = discord.Embed(
+        title="🎉 Resultado do Sorteio",
+        description=f"Vencedor: {vencedor.mention}\n📊 Chance: {porcentagem:.2f}%",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=vencedor.avatar.url if vencedor.avatar else None)
+    embed.add_field(name="Participantes", value=total, inline=True)
+    await ctx.send(embed=embed)
+
+@bot.command(name='sorteio')
+async def sorteio(ctx):
+    """Sorteia um vencedor entre as pessoas mencionadas"""
+    if not ctx.message.mentions:
+        embed = discord.Embed(title="❌ Erro", description="Mencione pelo menos um usuário!\n\nExemplo: `MS!sorteio @user1 @user2`", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        return
+    
+    if len(ctx.message.mentions) > 50:
+        embed = discord.Embed(title="❌ Erro", description="Máximo de 50 usuários!", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        return
+    
+    total = len(ctx.message.mentions)
+    porcentagem = (1 / total) * 100
+    vencedor = random.choice(ctx.message.mentions)
+    
+    embed = discord.Embed(
+        title="🎉 Resultado do Sorteio",
+        description=f"Vencedor: {vencedor.mention}\n📊 Chance: {porcentagem:.2f}%",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=vencedor.avatar.url if vencedor.avatar else None)
+    embed.add_field(name="Participantes", value=total, inline=True)
+    await ctx.send(embed=embed)
+
 # ==================== COMMANDS DE INFO ====================
 @bot.command(name='user')
 async def user_cmd(ctx, usuario: discord.User = None):
+    """Mostra informações de um usuário"""
     if usuario is None:
         usuario = ctx.author
     
@@ -114,6 +169,7 @@ async def user_cmd(ctx, usuario: discord.User = None):
 
 @bot.command(name='serverinfo')
 async def serverinfo_cmd(ctx):
+    """Mostra informações do servidor"""
     guild = ctx.guild
     embed = discord.Embed(title=f"Informações de {guild.name}", color=discord.Color.green())
     embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
