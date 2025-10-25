@@ -104,4 +104,104 @@ class CombateView(discord.ui.View):
         
         # Calcular danos
         dmg_player = calc_dmg(self.uid)
-        dmg_mob = random.uniform(self.mob['
+        dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
+        self.mob_hp -= dmg_player
+        morreu = apply_dmg(self.uid, dmg_mob)
+        p = get_player(self.uid)
+        
+        desc = f"**Turno {self.turno}**\n"
+        desc += f"⚔️ Você deu: **{dmg_player:.1f} dmg**\n"
+        desc += f"💪 {self.mob['nome']} deu: **{dmg_mob:.1f} dmg**\n\n"
+        desc += f"💪 {self.mob['nome']}: {max(0, self.mob_hp):.0f} HP\n"
+        desc += f"❤️ Você: {p['hp']:.0f} HP"
+        
+        if self.mob_hp <= 0:
+            # Vitória
+            xp = self.mob['xp']
+            lvl_up = gain_xp(self.uid, xp)
+            p = get_player(self.uid)
+            
+            desc = f"🎉 **VITÓRIA!**\n\n"
+            desc += f"Derrotou o {self.mob['nome']}!\n"
+            desc += f"+{xp} XP"
+            
+            for item, qtd_range in self.mob['drops'].items():
+                qtd = random.randint(qtd_range[0], qtd_range[1])
+                add_item(self.uid, item, qtd)
+                desc += f"\n+{qtd}x {item}"
+            
+            if lvl_up:
+                desc += f"\n\n🎉 **LEVEL UP!** Nível {p['level']}!"
+            
+            await i.response.send_message(embed=discord.Embed(title="⚔️ Vitória!", description=desc, color=0x00ff00), ephemeral=True)
+            await self.msg.edit(view=None)
+            self.stop()
+        
+        elif morreu:
+            # Derrota
+            desc = f"💀 **VOCÊ MORREU!**\n\n"
+            desc += f"O {self.mob['nome']} foi muito forte...\n"
+            desc += f"Perdeu 1 nível e TODOS os itens!"
+            
+            await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
+            await self.msg.edit(view=None)
+            self.stop()
+        
+        else:
+            # Continua combate
+            self.turno += 1
+            embed = discord.Embed(title=f"⚔️ {self.mob['nome']}", description=desc, color=0xff8c00)
+            await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🛡️ Defender", style=discord.ButtonStyle.primary)
+    async def defender(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
+            return
+        
+        # Verificar escudo
+        if not has_item(self.uid, '🛡️'):
+            embed = discord.Embed(
+                title="❌ Sem Escudo",
+                description="Você precisa de um escudo para defender!\n\n**Craft:** 1⚙️ + 6🪵",
+                color=0xff0000
+            )
+            await i.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        # Aplicar defesa
+        dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
+        morreu = apply_dmg(self.uid, dmg_mob, defending=True)
+        p = get_player(self.uid)
+        
+        dano_final = dmg_mob * 0.3
+        
+        desc = f"**Turno {self.turno}**\n\n"
+        desc += f"🛡️ Você ergueu o escudo!\n"
+        desc += f"💥 O {self.mob['nome']} atacou!\n"
+        desc += f"Bloqueou **70%** do dano!\n\n"
+        desc += f"Dano recebido: **{dano_final:.1f}**\n"
+        desc += f"❤️ Você: {p['hp']:.0f} HP"
+        
+        if morreu:
+            # Derrota mesmo defendendo
+            desc = f"💀 **VOCÊ MORREU!**\n\n"
+            desc += f"Mesmo com a defesa, o {self.mob['nome']} foi muito forte...\n"
+            desc += f"Perdeu 1 nível e TODOS os itens!"
+            
+            await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
+            await self.msg.edit(view=None)
+            self.stop()
+        
+        else:
+            # Continua combate
+            self.turno += 1
+            embed = discord.Embed(title="🛡️ Defesa", description=desc, color=0x4169e1)
+            await i.response.send_message(embed=embed, ephemeral=True)
+
+class Combate(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+async def setup(bot):
+    await bot.add_cog(Combate(bot))
