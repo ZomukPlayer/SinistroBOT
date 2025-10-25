@@ -52,7 +52,7 @@ def gain_xp(uid, qty):
 # ==================== VIEWS ====================
 class AventuraView(discord.ui.View):
     def __init__(self, uid, msg):
-        super().__init__(timeout=None)
+        super().__init__(timeout=None)  # Timeout None = nunca expira
         self.uid = uid
         self.msg = msg
     
@@ -66,7 +66,9 @@ class AventuraView(discord.ui.View):
         desc += f"🛡️ Escudo: {'Sim ✅' if p['escudo'] else 'Não ❌'}"
         
         embed = discord.Embed(title="🌲 Floresta", description=desc, color=0x00ff00)
-        await self.msg.edit(embed=embed)
+        # Recriar a view para os botões não desaparecerem
+        new_view = AventuraView(self.uid, self.msg)
+        await self.msg.edit(embed=embed, view=new_view)
     
     @discord.ui.button(label="🪓 Cortar Árvore", style=discord.ButtonStyle.green)
     async def cortar(self, i: discord.Interaction, b: discord.ui.Button):
@@ -272,4 +274,3 @@ class Aventura(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Aventura(bot))
-  
