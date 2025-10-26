@@ -108,13 +108,13 @@ async def sorteio(ctx):
         await ctx.send(embed=embed)
         return
     
-    if len(ctx.message.mentions) > 500:
-        embed = discord.Embed(title="❌ Erro", description="Máximo de 500 usuários!", color=discord.Color.red())
+    if len(ctx.message.mentions) > 50:
+        embed = discord.Embed(title="❌ Erro", description="Máximo de 50 usuários!", color=discord.Color.red())
         await ctx.send(embed=embed)
         return
     
     total = len(ctx.message.mentions)
-    porcentagem = (1 / total) * 10
+    porcentagem = (1 / total) * 100
     vencedor = random.choice(ctx.message.mentions)
     
     embed = discord.Embed(
@@ -125,7 +125,33 @@ async def sorteio(ctx):
     embed.set_thumbnail(url=vencedor.avatar.url if vencedor.avatar else None)
     embed.add_field(name="Participantes", value=total, inline=True)
     await ctx.send(embed=embed)
+
+@bot.command(name='sorteio')
+async def sorteio(ctx):
+    """Sorteia um vencedor entre as pessoas mencionadas"""
+    if not ctx.message.mentions:
+        embed = discord.Embed(title="❌ Erro", description="Mencione pelo menos um usuário!\n\nExemplo: `MS!sorteio @user1 @user2`", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        return
     
+    if len(ctx.message.mentions) > 50:
+        embed = discord.Embed(title="❌ Erro", description="Máximo de 50 usuários!", color=discord.Color.red())
+        await ctx.send(embed=embed)
+        return
+    
+    total = len(ctx.message.mentions)
+    porcentagem = (1 / total) * 100
+    vencedor = random.choice(ctx.message.mentions)
+    
+    embed = discord.Embed(
+        title="🎉 Resultado do Sorteio",
+        description=f"Vencedor: {vencedor.mention}\n📊 Chance: {porcentagem:.2f}%",
+        color=discord.Color.purple()
+    )
+    embed.set_thumbnail(url=vencedor.avatar.url if vencedor.avatar else None)
+    embed.add_field(name="Participantes", value=total, inline=True)
+    await ctx.send(embed=embed)
+
 # ==================== COMMANDS DE INFO ====================
 @bot.command(name='user')
 async def user_cmd(ctx, usuario: discord.User = None):
@@ -157,7 +183,7 @@ async def serverinfo_cmd(ctx):
 # ==================== CARREGAR MÓDULOS ====================
 async def load_modules():
     """Carrega todos os módulos de blocos"""
-    modules = ['blocos.aventura', 'blocos.combate', 'blocos.crafting']
+    modules = ['blocos.aventura', 'blocos.combate', 'blocos.crafting', 'blocos.multiplayer']
     
     for module in modules:
         try:
@@ -178,5 +204,3 @@ else:
     print("✅ Token carregado")
     print("🎮 Minecraft 2 - FASE 2.0 (Modular)")
     bot.run(token)
-
-
