@@ -240,6 +240,32 @@ class CraftView(discord.ui.View):
             await i.response.send_message(embed=discord.Embed(title="🔨 Craft!", description=desc, color=0x00ff00), ephemeral=True)
         else:
             await i.response.send_message(embed=discord.Embed(title="❌ Faltam Materiais", description="Você precisa: 1x 🪵 + 1x 🪨", color=0xff0000), ephemeral=True)
+    
+    @discord.ui.button(label="👁️ Olho do Fim", style=discord.ButtonStyle.danger, row=3)
+    async def olho_fim(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        if has_item(self.uid, '🔱', 2) and has_item(self.uid, '💎', 1):
+            remove_item(self.uid, '🔱', 2)
+            remove_item(self.uid, '💎', 1)
+            add_item(self.uid, '👁️', 1)
+            add_item(self.uid, '🔷', 1)  # Ganha 1 Netherita ao craftar
+            
+            p = get_player(self.uid)
+            olhos = p['itens'].get('👁️', 0)
+            
+            desc = f"✅ Você craftou um **Olho do Fim**!\n\n"
+            desc += f"👁️ Olhos do Fim: {olhos}/5\n"
+            desc += f"🔷 +1 Netherita!"
+            
+            if olhos >= 5:
+                desc += f"\n\n🌌 **Você pode viajar para The End!**"
+            
+            await i.response.send_message(embed=discord.Embed(title="🔨 Craft!", description=desc, color=0x00ff00), ephemeral=True)
+        else:
+            await i.response.send_message(embed=discord.Embed(title="❌ Faltam Materiais", description="Você precisa: 2x 🔱 Vara de Blaze + 1x 💎", color=0xff0000), ephemeral=True)
 
 class Crafting(commands.Cog):
     def __init__(self, bot):
