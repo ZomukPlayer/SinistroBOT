@@ -167,6 +167,34 @@ class LocaisView(discord.ui.View):
             embed = discord.Embed(title="🏜️ Areia", description=desc, color=0xf4a460)
         
         await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🌌 The End (5👁️)", style=discord.ButtonStyle.success)
+    async def the_end(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        if not has_item(self.uid, '👁️', 5):
+            olhos = get_player(self.uid)['itens'].get('👁️', 0)
+            await i.response.send_message(f"❌ Você precisa de 5 Olhos do Fim!\n\n👁️ Você tem: {olhos}/5", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        p['local'] = 'the_end'
+        
+        # Remove os 5 olhos ao entrar
+        remove_item(self.uid, '👁️', 5)
+        
+        from .end import CristaisView
+        
+        embed = discord.Embed(title="🌌 The End", description=f"**{p['nome']}**\n❤️ HP: {p['hp']:.0f}/20\n\n🐉 O Dragão te aguarda...", color=0x800080)
+        await self.msg.edit(embed=embed)
+        
+        view = CristaisView(self.uid, self.msg)
+        await view.update_embed()
+        await self.msg.edit(view=view)
+        
+        await i.response.send_message("🌌 Bem-vindo ao The End!", ephemeral=True)
 
 class OutrosView(discord.ui.View):
     def __init__(self, uid):
