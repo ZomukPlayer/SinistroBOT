@@ -98,34 +98,7 @@ async def moeda(ctx):
     resultado = random.choice(["Cara 🪙", "Coroa 🪙"])
     embed = discord.Embed(title="🪙 Moeda", description=resultado, color=discord.Color.yellow())
     await ctx.send(embed=embed)
-
-@bot.command(name='sorteio')
-async def sorteio(ctx):
-    """Sorteia um vencedor entre as pessoas mencionadas"""
-    import random
-    if not ctx.message.mentions:
-        embed = discord.Embed(title="❌ Erro", description="Mencione pelo menos um usuário!\n\nExemplo: `MS!sorteio @user1 @user2`", color=discord.Color.red())
-        await ctx.send(embed=embed)
-        return
-    
-    if len(ctx.message.mentions) > 50:
-        embed = discord.Embed(title="❌ Erro", description="Máximo de 50 usuários!", color=discord.Color.red())
-        await ctx.send(embed=embed)
-        return
-    
-    total = len(ctx.message.mentions)
-    porcentagem = (1 / total) * 100
-    vencedor = random.choice(ctx.message.mentions)
-    
-    embed = discord.Embed(
-        title="🎉 Resultado do Sorteio",
-        description=f"Vencedor: {vencedor.mention}\n📊 Chance: {porcentagem:.2f}%",
-        color=discord.Color.purple()
-    )
-    embed.set_thumbnail(url=vencedor.avatar.url if vencedor.avatar else None)
-    embed.add_field(name="Participantes", value=total, inline=True)
-    await ctx.send(embed=embed)
-
+# =================== Sorteio =====================
 @bot.command(name='sorteio')
 async def sorteio(ctx):
     """Sorteia um vencedor entre as pessoas mencionadas"""
@@ -204,3 +177,4 @@ else:
     print("✅ Token carregado")
     print("🎮 Minecraft 2 - FASE 2.0 (Modular)")
     bot.run(token)
+
