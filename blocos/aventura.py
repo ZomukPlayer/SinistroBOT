@@ -181,6 +181,17 @@ class OutrosView(discord.ui.View):
         embed = discord.Embed(title="📦 Inventário", description=desc, color=0x8B4513)
         await i.response.send_message(embed=embed, ephemeral=True)
     
+    @discord.ui.button(label="🔨 Craftar", style=discord.ButtonStyle.secondary)
+    async def craftar(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        from .crafting import CraftView
+        
+        view = CraftView(self.uid)
+        await i.response.send_message(embed=discord.Embed(title="🔨 Crafting", description="Escolha uma opção:", color=0x8B4513), view=view, ephemeral=True)
+    
     @discord.ui.button(label="🤝 Trade", style=discord.ButtonStyle.primary)
     async def trade(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
