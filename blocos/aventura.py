@@ -69,7 +69,7 @@ class LocaisView(discord.ui.View):
         
         p['local'] = 'caverna'
         
-        if random.randint(1, 3) == 1:
+        if random.randint(1, 4) == 1:  # 25% de chance
             mob_e = random.choice(['🧟', '🕷️', '💀', '🧨'])
             mob = MOBS[mob_e]
             
@@ -332,15 +332,19 @@ class AventuraView(discord.ui.View):
             return
         
         p = get_player(self.uid)
-        if p['fome'] >= 10:
-            await i.response.send_message(embed=discord.Embed(title="❌ Cheio", description="Você já está de barriga cheia!", color=0xff0000), ephemeral=True)
-            return
-        
         remove_item(self.uid, '🪵', 5)
-        recuperar = random.randint(3, 5)
-        p['fome'] = min(10, p['fome'] + recuperar)
         
-        await i.response.send_message(embed=discord.Embed(title="🍖 Comeu!", description=f"Recuperou **{recuperar} fome**!\n🍖 {p['fome']}/10", color=0xff0000), ephemeral=True)
+        # Regenera vida quando fome está cheia
+        if p['fome'] >= 10:
+            recuperar_hp = random.randint(2, 4)
+            p['hp'] = min(20, p['hp'] + recuperar_hp)
+            desc = f"🍖 Você comeu e recuperou **{recuperar_hp} HP**!\n❤️ {p['hp']:.0f}/20"
+        else:
+            recuperar_fome = random.randint(3, 5)
+            p['fome'] = min(10, p['fome'] + recuperar_fome)
+            desc = f"🍖 Você comeu e recuperou **{recuperar_fome} fome**!\n🍖 {p['fome']}/10"
+        
+        await i.response.send_message(embed=discord.Embed(title="🍖 Comeu!", description=desc, color=0xff0000), ephemeral=True)
         await self.update_embed()
     
     @discord.ui.button(label="😴 Dormir", style=discord.ButtonStyle.success, row=1)
