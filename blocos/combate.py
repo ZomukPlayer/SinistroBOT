@@ -29,8 +29,8 @@ def calc_dmg(uid):
     if not p:
         return 0.5
     
-    dmg_map = {'🔷⚔️': 3, '💎⚔️': 2.5, '⚙️⚔️': 1.5, '🪵⚔️': 1}
-    dmg = dmg_map.get(p['arma'], 0.5)
+    dmg_map = {'🔷⚔️': 3, '💎⚔️': 2.5, '⚙️⚔️': 1.5, '🪨⚔️': 1, '🪵⚔️': 0.5}
+    dmg = dmg_map.get(p['arma'], 0.5)  # Mão = 0.5
     
     # Se fome baixa, reduz dano
     if p['fome'] < 3:
