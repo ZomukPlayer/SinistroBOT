@@ -198,13 +198,18 @@ class DragaoView(discord.ui.View):
         if self.dragao_hp <= 0:
             # VITÓRIA!
             xp_ganho = 1000
+            netherita_ganho = 10
+            
             gain_xp(self.uid, xp_ganho)
+            add_item(self.uid, '🔷', netherita_ganho)
+            
             p = get_player(self.uid)
             
             desc_vitoria = f"🎉 **PARABÉNS!**\n\n"
             desc_vitoria += f"Você foi o 1º a matar o Dragão do Fim!\n\n"
             desc_vitoria += f"Recebeu **{xp_ganho} XP**!\n"
             desc_vitoria += f"XP Total: **{p['xp']}/{p['level']*10}**\n\n"
+            desc_vitoria += f"Ganhou **{netherita_ganho}x 🔷 Netherita**!\n\n"
             desc_vitoria += f"Nível: **{p['level']}**"
             
             embed = discord.Embed(title="🎉 VITÓRIA ÉPICA!", description=desc_vitoria, color=0x800080)
