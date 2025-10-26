@@ -164,8 +164,7 @@ class CombateView(discord.ui.View):
             # Derrota
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O {self.mob['nome']} foi muito forte...\n"
-            desc += f"Você morreu e terá que começar tudo de novo!"
-            desc += f"Use `MS!aventura` para recomeçar"
+            desc += f"Perdeu 1 nível e TODOS os itens!"
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
@@ -211,8 +210,7 @@ class CombateView(discord.ui.View):
             # Derrota mesmo defendendo
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"Mesmo com a defesa, o {self.mob['nome']} foi muito forte...\n"
-            desc += f"Você morreu e terá que começar tudo de novo!"
-            desc += f"Use `MS!aventura` para recomeçar"
+            desc += f"Perdeu 1 nível e TODOS os itens!"
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
