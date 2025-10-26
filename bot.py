@@ -157,14 +157,14 @@ async def serverinfo_cmd(ctx):
 # ==================== CARREGAR MÓDULOS ====================
 async def load_modules():
     """Carrega todos os módulos de blocos"""
-    modules = ['blocos.aventura', 'blocos.combate', 'blocos.crafting', 'blocos.multiplayer', 'blocos.nether_melhorado', 'blocos.end']
+    modules = ['blocos.aventura', 'blocos.combate', 'blocos.crafting', 'blocos.multiplayer', 'blocos.nether', 'blocos.end']
     
     for module in modules:
         try:
             await bot.load_extension(module)
             print(f"✅ Módulo {module} carregado")
         except Exception as e:
-            print(f"❌ Erro ao carregar {module}: {e}")
+            print(f"Então né, {module} foi rebelde: {e}")
 
 @bot.event
 async def setup_hook():
@@ -178,4 +178,5 @@ else:
     print("✅ Token carregado")
     print("🎮 Minecraft 2 - FASE 2.0 (Modular)")
     bot.run(token)
+
 
