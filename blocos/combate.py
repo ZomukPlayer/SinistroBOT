@@ -104,13 +104,14 @@ class CombateView(discord.ui.View):
         
         # Calcular danos
         dmg_player = calc_dmg(self.uid)
-        dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
+        p = get_player(self.uid)
         
         # CREEPER ESPECIAL: dá 18 de dano e se mata
-        if '🧨' in self.mob['nome']:
+        if self.mob['nome'] == 'Creeper':
             dmg_mob = 18
-            self.mob_hp = 0  # Creeper se auto-destrói
+            self.mob_hp = -1  # Garante que vai morrer
         else:
+            dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
             self.mob_hp -= dmg_player
         
         morreu = apply_dmg(self.uid, dmg_mob)
@@ -118,7 +119,12 @@ class CombateView(discord.ui.View):
         
         desc = f"**Turno {self.turno}**\n"
         desc += f"⚔️ Você deu: **{dmg_player:.1f} dmg**\n"
-        desc += f"💪 {self.mob['nome']} deu: **{dmg_mob:.1f} dmg**\n\n"
+        
+        if self.mob['nome'] == 'Creeper':
+            desc += f"💥 Creeper: **EXPLODIU! (AUTO-MORTE)** Deu 18 de dano!\n\n"
+        else:
+            desc += f"💪 {self.mob['nome']} deu: **{dmg_mob:.1f} dmg**\n\n"
+        
         desc += f"💪 {self.mob['nome']}: {max(0, self.mob_hp):.0f} HP\n"
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
@@ -142,13 +148,24 @@ class CombateView(discord.ui.View):
             
             await i.response.send_message(embed=discord.Embed(title="⚔️ Vitória!", description=desc, color=0x00ff00), ephemeral=True)
             await self.msg.edit(view=None)
+            
+            # Voltar automaticamente pra floresta
+            p = get_player(self.uid)
+            p['local'] = 'floresta'
+            barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+            embed_volta = discord.Embed(title="🌲 Floresta", description=f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']:.0f}/20 | {barra}\n\nVocê voltou para a floresta", color=0x00ff00)
+            from .aventura import AventuraView
+            view_volta = AventuraView(self.uid, self.msg)
+            await self.msg.edit(embed=embed_volta, view=view_volta)
+            
             self.stop()
         
         elif morreu:
             # Derrota
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O {self.mob['nome']} foi muito forte...\n"
-            desc += f"Perdeu 1 nível e TODOS os itens!"
+            desc += f"Você morreu e terá que começar tudo de novo!"
+            desc += f"Use `MS!aventura` para recomeçar"
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
@@ -194,7 +211,8 @@ class CombateView(discord.ui.View):
             # Derrota mesmo defendendo
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"Mesmo com a defesa, o {self.mob['nome']} foi muito forte...\n"
-            desc += f"Perdeu 1 nível e TODOS os itens!"
+            desc += f"Você morreu e terá que começar tudo de novo!"
+            desc += f"Use `MS!aventura` para recomeçar"
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
