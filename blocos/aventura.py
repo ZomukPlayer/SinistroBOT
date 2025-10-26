@@ -90,6 +90,16 @@ class LocaisView(discord.ui.View):
                     p = get_player(self.uid)
                     desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
                 embed = discord.Embed(title="💎 SORTE!", description=desc, color=0x00FFFF)
+            elif random.randint(1, 5) == 1:
+                # Chance de encontrar Ferro
+                ferro = random.randint(1, 3)
+                add_item(self.uid, '⚙️', ferro)
+                lvl = gain_xp(self.uid, 5)
+                desc = f"⚙️ Você encontrou **{ferro}x ⚙️ Ferro**!\n+5 XP"
+                if lvl:
+                    p = get_player(self.uid)
+                    desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
+                embed = discord.Embed(title="⚙️ Ferro!", description=desc, color=0xC0C0C0)
             else:
                 pedras = random.randint(3, 7)
                 add_item(self.uid, '🪨', pedras)
@@ -345,15 +355,26 @@ class AventuraView(discord.ui.View):
         p = get_player(self.uid)
         remove_item(self.uid, '🪵', 5)
         
+        # 30% de chance de conseguir Couro de um animal
+        couro_obtido = random.randint(1, 4) == 1
+        
         # Regenera vida quando fome está cheia
         if p['fome'] >= 10:
             recuperar_hp = random.randint(2, 4)
             p['hp'] = min(20, p['hp'] + recuperar_hp)
-            desc = f"🍖 Você comeu e recuperou **{recuperar_hp} HP**!\n❤️ {p['hp']:.0f}/20"
+            desc = f"🍖 Você comeu carne e regenerou **{recuperar_hp} HP**!\n❤️ {p['hp']:.0f}/20"
+            
+            if couro_obtido:
+                add_item(self.uid, '🥩', 1)
+                desc += f"\n\n🥩 Você obteve um Couro de animal!"
         else:
             recuperar_fome = random.randint(3, 5)
             p['fome'] = min(10, p['fome'] + recuperar_fome)
             desc = f"🍖 Você comeu e recuperou **{recuperar_fome} fome**!\n🍖 {p['fome']}/10"
+            
+            if couro_obtido:
+                add_item(self.uid, '🥩', 1)
+                desc += f"\n\n🥩 Você obteve um Couro de animal!"
         
         await i.response.send_message(embed=discord.Embed(title="🍖 Comeu!", description=desc, color=0xff0000), ephemeral=True)
         await self.update_embed()
