@@ -50,6 +50,192 @@ def gain_xp(uid, qty):
     return False
 
 # ==================== VIEWS ====================
+class LocaisView(discord.ui.View):
+    def __init__(self, uid, msg):
+        super().__init__(timeout=None)
+        self.uid = uid
+        self.msg = msg
+    
+    @discord.ui.button(label="🗻 Caverna (Lv2+)", style=discord.ButtonStyle.primary)
+    async def caverna(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        if p['level'] < 2:
+            await i.response.send_message("❌ Nível mínimo: 2", ephemeral=True)
+            return
+        
+        p['local'] = 'caverna'
+        
+        if random.randint(1, 3) == 1:
+            mob_e = random.choice(['🧟', '🕷️', '💀', '🧨'])
+            mob = MOBS[mob_e]
+            
+            from .combate import CombateView
+            
+            view = CombateView(self.uid, mob, self.msg)
+            desc = f"**{mob['nome']}**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
+            embed = discord.Embed(title="⚔️ COMBATE!", description=desc, color=0xff8c00)
+            await self.msg.edit(embed=embed, view=view)
+            await i.response.send_message(embed=discord.Embed(title="⚠️ MOB APARECEU!", description=f"Um {mob['nome']} te atacou!", color=0xff0000), ephemeral=True)
+        else:
+            if random.randint(1, 10) >= 9:
+                diamantes = random.randint(1, 3)
+                add_item(self.uid, '💎', diamantes)
+                lvl = gain_xp(self.uid, 10)
+                desc = f"💎 **DIAMANTE ENCONTRADO!**\n+{diamantes}x 💎\n+10 XP"
+                if lvl:
+                    p = get_player(self.uid)
+                    desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
+                embed = discord.Embed(title="💎 SORTE!", description=desc, color=0x00FFFF)
+            else:
+                pedras = random.randint(3, 7)
+                add_item(self.uid, '🪨', pedras)
+                lvl = gain_xp(self.uid, 3)
+                desc = f"⛏️ Você minerou **{pedras}x 🪨 Pedra**\n+3 XP"
+                if lvl:
+                    p = get_player(self.uid)
+                    desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
+                embed = discord.Embed(title="⛏️ Minério", description=desc, color=0x808080)
+            
+            await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
+    async def nether(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        if p['level'] < 5:
+            await i.response.send_message("❌ Nível mínimo: 5", ephemeral=True)
+            return
+        
+        p['local'] = 'nether'
+        
+        from .combate import CombateView
+        
+        mob = MOBS['🐷']
+        view = CombateView(self.uid, mob, self.msg)
+        desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
+        embed = discord.Embed(title="⚔️ COMBATE ÉPICO!", description=desc, color=0xff4500)
+        await self.msg.edit(embed=embed, view=view)
+        await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** feroz apareceu!", color=0xff0000), ephemeral=True)
+    
+    @discord.ui.button(label="🏜️ Deserto (Lv3+)", style=discord.ButtonStyle.secondary)
+    async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        if p['level'] < 3:
+            await i.response.send_message("❌ Nível mínimo: 3", ephemeral=True)
+            return
+        
+        p['local'] = 'deserto'
+        
+        if random.randint(1, 10) >= 7:
+            diamantes = random.randint(3, 6)
+            add_item(self.uid, '💎', diamantes)
+            lvl = gain_xp(self.uid, 12)
+            desc = f"💎 **TESOURO ENCONTRADO!**\n+{diamantes}x 💎\n+12 XP"
+            if lvl:
+                p = get_player(self.uid)
+                desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
+            embed = discord.Embed(title="🏺 SORTE!", description=desc, color=0xffd700)
+        else:
+            pedras = random.randint(2, 4)
+            add_item(self.uid, '🪨', pedras)
+            lvl = gain_xp(self.uid, 3)
+            desc = f"🏜️ Você achou **{pedras}x 🪨 Pedra** na areia\n+3 XP"
+            if lvl:
+                p = get_player(self.uid)
+                desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
+            embed = discord.Embed(title="🏜️ Areia", description=desc, color=0xf4a460)
+        
+        await i.response.send_message(embed=embed, ephemeral=True)
+
+class OutrosView(discord.ui.View):
+    def __init__(self, uid):
+        super().__init__(timeout=60)
+        self.uid = uid
+    
+    @discord.ui.button(label="📦 Inventário", style=discord.ButtonStyle.primary)
+    async def inventario(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        inv = "\n".join([f"{item}: **{qty}**" for item, qty in p['itens'].items()]) or "Inventário vazio"
+        
+        desc = f"**{p['nome']}** | Lv. {p['level']}\n❤️ HP: {p['hp']:.0f}/20 | 🍖 Fome: {p['fome']}/10\n\n"
+        desc += f"**Itens:**\n{inv}\n\n"
+        desc += f"⚔️ Arma: {p['arma'] if p['arma'] else 'Nenhuma'}\n"
+        desc += f"🧥 Armadura: {p['armadura'] if p['armadura'] else 'Nenhuma'}\n"
+        desc += f"🛡️ Escudo: {'Sim ✅' if p['escudo'] else 'Não ❌'}"
+        
+        embed = discord.Embed(title="📦 Inventário", description=desc, color=0x8B4513)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🤝 Trade", style=discord.ButtonStyle.primary)
+    async def trade(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        embed = discord.Embed(
+            title="🤝 Trade",
+            description="Use o comando:\n`MS!trade @usuario`\n\nPara fazer trade com outro jogador!",
+            color=0x4169e1
+        )
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="👤 Perfil", style=discord.ButtonStyle.secondary)
+    async def perfil(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        
+        desc = f"**{p['nome']}** | Lv. {p['level']}\n"
+        desc += f"❤️ HP: {p['hp']:.0f}/20 | 🍖 Fome: {p['fome']}/10\n\n"
+        
+        desc += f"**STATS:**\n"
+        desc += f"📊 XP: {p['xp']}/{p['level']*10}\n"
+        desc += f"💀 Mortes: {p['mortes']}\n"
+        desc += f"📍 Local: {p['local']}\n\n"
+        
+        desc += f"**EQUIPAMENTO:**\n"
+        desc += f"⚔️ Arma: {p['arma'] if p['arma'] else 'Nenhuma'}\n"
+        desc += f"🧥 Armadura: {p['armadura'] if p['armadura'] else 'Nenhuma'}\n"
+        desc += f"🛡️ Escudo: {'Sim ✅' if p['escudo'] else 'Não ❌'}"
+        
+        embed = discord.Embed(title=f"👤 Seu Perfil", description=desc, color=0x8B4513)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🏆 Ranking", style=discord.ButtonStyle.secondary)
+    async def ranking(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        ranking_list = sorted(aventuras.items(), key=lambda x: (x[1]['level'], x[1]['xp']), reverse=True)[:5]
+        
+        desc = "🏆 **TOP 5 JOGADORES**\n\n"
+        
+        for idx, (uid, player) in enumerate(ranking_list, 1):
+            emoji = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+            desc += f"{emoji[idx-1]} **{player['nome']}** - Lv. {player['level']}\n"
+        
+        embed = discord.Embed(title="🏆 Ranking", description=desc, color=0xffd700)
+        await i.response.send_message(embed=embed, ephemeral=True)
+
+# ==================== VIEWS ====================
 class AventuraView(discord.ui.View):
     def __init__(self, uid, msg):
         super().__init__(timeout=None)  # Timeout None = nunca expira
@@ -107,79 +293,25 @@ class AventuraView(discord.ui.View):
         
         await self.update_embed()
     
-    @discord.ui.button(label="🗻 Caverna (Lv2+)", style=discord.ButtonStyle.primary)
-    async def caverna(self, i: discord.Interaction, b: discord.ui.Button):
+    @discord.ui.button(label="✈️ Locais", style=discord.ButtonStyle.primary)
+    async def locais(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
         
-        p = get_player(self.uid)
-        if p['level'] < 2:
-            await i.response.send_message("❌ Nível mínimo: 2", ephemeral=True)
-            return
-        
-        p['local'] = 'caverna'
-        
-        if random.randint(1, 3) == 1:
-            mob_e = random.choice(['🧟', '🕷️', '💀', '🧨'])
-            mob = MOBS[mob_e]
-            
-            # Importar view de combate
-            from .combate import CombateView
-            
-            view = CombateView(self.uid, mob, self.msg)
-            desc = f"**{mob['nome']}**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
-            embed = discord.Embed(title="⚔️ COMBATE!", description=desc, color=0xff8c00)
-            await self.msg.edit(embed=embed, view=view)
-            await i.response.send_message(embed=discord.Embed(title="⚠️ MOB APARECEU!", description=f"Um {mob['nome']} te atacou!", color=0xff0000), ephemeral=True)
-        else:
-            if random.randint(1, 10) >= 9:
-                diamantes = random.randint(1, 3)
-                add_item(self.uid, '💎', diamantes)
-                lvl = gain_xp(self.uid, 10)
-                desc = f"💎 **DIAMANTE ENCONTRADO!**\n+{diamantes}x 💎\n+10 XP"
-                if lvl:
-                    p = get_player(self.uid)
-                    desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
-                embed = discord.Embed(title="💎 SORTE!", description=desc, color=0x00FFFF)
-            else:
-                pedras = random.randint(3, 7)
-                add_item(self.uid, '🪨', pedras)
-                lvl = gain_xp(self.uid, 3)
-                desc = f"⛏️ Você minerou **{pedras}x 🪨 Pedra**\n+3 XP"
-                if lvl:
-                    p = get_player(self.uid)
-                    desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
-                embed = discord.Embed(title="⛏️ Minério", description=desc, color=0x808080)
-            
-            await i.response.send_message(embed=embed, ephemeral=True)
-        
-        await self.update_embed()
+        view = LocaisView(self.uid, self.msg)
+        embed = discord.Embed(title="✈️ Escolha um Local", description="Para onde você quer viajar?", color=0x4169e1)
+        await i.response.send_message(embed=embed, view=view, ephemeral=True)
     
-    @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
-    async def nether(self, i: discord.Interaction, b: discord.ui.Button):
+    @discord.ui.button(label="📋 Outros", style=discord.ButtonStyle.secondary)
+    async def outros(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
         
-        p = get_player(self.uid)
-        if p['level'] < 5:
-            await i.response.send_message("❌ Nível mínimo: 5", ephemeral=True)
-            return
-        
-        p['local'] = 'nether'
-        
-        from .combate import CombateView
-        
-        mob = MOBS['🐷']
-        view = CombateView(self.uid, mob, self.msg)
-        desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
-        embed = discord.Embed(title="⚔️ COMBATE ÉPICO!", description=desc, color=0xff4500)
-        await self.msg.edit(embed=embed, view=view)
-        await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** feroz apareceu!", color=0xff0000), ephemeral=True)
-    
-    @discord.ui.button(label="🔨 Craftar", style=discord.ButtonStyle.secondary)
-    async def craftar(self, i: discord.Interaction, b: discord.ui.Button):
+        view = OutrosView(self.uid)
+        embed = discord.Embed(title="📋 Menu Outros", description="Escolha uma opção:", color=0x9370DB)
+        await i.response.send_message(embed=embed, view=view, ephemeral=True)
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
