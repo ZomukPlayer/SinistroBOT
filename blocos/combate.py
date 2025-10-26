@@ -105,7 +105,14 @@ class CombateView(discord.ui.View):
         # Calcular danos
         dmg_player = calc_dmg(self.uid)
         dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
-        self.mob_hp -= dmg_player
+        
+        # CREEPER ESPECIAL: dá 18 de dano e se mata
+        if '🧨' in self.mob['nome']:
+            dmg_mob = 18
+            self.mob_hp = 0  # Creeper se auto-destrói
+        else:
+            self.mob_hp -= dmg_player
+        
         morreu = apply_dmg(self.uid, dmg_mob)
         p = get_player(self.uid)
         
