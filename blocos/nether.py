@@ -46,7 +46,7 @@ def apply_dmg(uid, dmg, defending=False):
         dmg *= 0.3
     
     if p['armadura']:
-        def_map = {'🔷': 3.5, '💎': 3, '⚙️': 1.5, '🥩': 1}
+        def_map = {'🔷': 2.5, '💎': 2, '⚙️': 1.5, '🥩': 1}
         for mat, val in def_map.items():
             if mat in p['armadura']:
                 dmg = max(0.5, dmg - val)
@@ -96,8 +96,8 @@ class CombateBlazeView(discord.ui.View):
             return
         
         dmg_player = calc_dmg(self.uid)
-        # Dano base: 5 + 1.5 fogo = 6.5 (sem armadura)
-        dmg_blaze = 6.5
+        # Dano base: 4 + 0.5 fogo = 4.5 (sem armadura)
+        dmg_blaze = 4.5
         
         self.blaze_hp -= dmg_player
         morreu = apply_dmg(self.uid, dmg_blaze)
@@ -118,8 +118,8 @@ class CombateBlazeView(discord.ui.View):
             desc += f"Derrotou o Blaze!\n"
             desc += f"+{xp} XP"
             
-            # 25% de chance de dropar vara de blaze
-            if random.randint(1, 4) == 1:
+            # 20% de chance de dropar Vara de Blaze
+            if random.randint(1, 5) == 1:
                 add_item(self.uid, '🔱', 1)
                 desc += f"\n+1x 🔱 Vara de Blaze!"
             
