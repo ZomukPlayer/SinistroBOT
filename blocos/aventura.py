@@ -400,15 +400,27 @@ class AventuraView(discord.ui.View):
             return
         
         p = get_player(self.uid)
+        comida_atual = p['itens'].get('🍗', 0)
+        
+        # Verificar limite de 16
+        if comida_atual >= 16:
+            await i.response.send_message(embed=discord.Embed(title="❌ Mochila Cheia", description=f"🍗 Você já tem 16/16 comidas!\n\nUse 🍗 Comer para liberar espaço", color=0xff0000), ephemeral=True)
+            return
+        
         p['fome'] = max(0, p['fome'] - 1)
         
-        # 40% de chance de conseguir comida
-        if random.randint(1, 10) <= 4:
+        # 70% de chance de conseguir comida
+        if random.randint(1, 10) <= 7:
             comida = random.randint(1, 3)
-            add_item(self.uid, '🍗', comida)
             
-            desc = f"🔱 Você caçou e conseguiu **{comida}x 🍗 Comida**!\n\n"
-            desc += f"🍗 Total: {p['itens'].get('🍗', 0)}/16"
+            # Não passar de 16
+            comida_total = min(16, comida_atual + comida)
+            comida_obtida = comida_total - comida_atual
+            
+            add_item(self.uid, '🍗', comida_obtida)
+            
+            desc = f"🔱 Você caçou e conseguiu **{comida_obtida}x 🍗 Comida**!\n\n"
+            desc += f"🍗 Total: {comida_total}/16"
             
             embed = discord.Embed(title="🔱 Caça bem-sucedida!", description=desc, color=0x8B4513)
         else:
