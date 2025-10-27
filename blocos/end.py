@@ -37,7 +37,7 @@ def apply_dmg(uid, dmg):
         return False
     
     if p['armadura']:
-        def_map = {'🔷': 2.5, '💎': 2, '⚙️': 1.5, '🥩': 1}
+        def_map = {'🔷': 3.5, '💎': 3, '⚙️': 1.5, '🥩': 1}
         for mat, val in def_map.items():
             if mat in p['armadura']:
                 dmg = max(0.5, dmg - val)
