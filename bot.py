@@ -34,7 +34,9 @@ MOBS = {
     '🕷️': {'nome': 'Aranha', 'hp': (10, 14), 'dano': (3, 7), 'xp': 10, 'drops': {'🪨': (1, 2)}},
     '💀': {'nome': 'Esqueleto', 'hp': (9, 13), 'dano': (3, 6), 'xp': 12, 'drops': {'⚙️': (1, 1)}},
     '🧨': {'nome': 'Creeper', 'hp': (12, 16), 'dano': (4, 8), 'xp': 15, 'drops': {'🔥': (1, 2)}},
-    '🐷': {'nome': 'Piglin', 'hp': (15, 25), 'dano': (5, 10), 'xp': 20, 'drops': {'💎': (2, 5)}},
+    '🐷': {'nome': 'Piglin', 'hp': (15, 20), 'dano': (7, 8), 'xp': 20, 'drops': {'💎': (2, 5)}},
+    '🔥': {'nome': 'Blaze', 'hp': (15, 15), 'dano': (4, 5), 'xp': 25, 'drops': {'🔱': (0, 1)}},
+    '🐉': {'nome': 'Ender Dragon', 'hp': (70), 'dano': (10, 15), 'xp': 100, 'drops': {'🔷': (10)}},
 }
 
 # ==================== DADOS GLOBAIS ====================
@@ -178,5 +180,6 @@ else:
     print("✅ Token carregado")
     print("🎮 Minecraft 2 - FASE 2.0 (Modular)")
     bot.run(token)
+
 
 
