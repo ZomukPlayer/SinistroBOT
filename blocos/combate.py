@@ -1,16 +1,20 @@
 """
-BLOCO COMBATE
-Mecânicas: Bater vs Defender
-Dano: Bater basado em arma | Defender reduz 70% com escudo
-Morte: Perde tudo e desce 1 nível
+BLOCO COMBATE - v2.0
+VERSÃO: 2.0
+ÚLTIMA ATUALIZAÇÃO: 26/10/2025
+
+SISTEMAS:
+- Bater (dano por arma)
+- Defender (reduz 70%)
+- Fugir (50% chance)
+- Comer (regenera 3-5 HP)
+- Morte (perde tudo)
 """
 import discord
 from discord.ext import commands
 import random
-
 from __main__ import aventuras
 
-# ==================== FUNÇÕES ====================
 def get_player(uid):
     return aventuras.get(uid)
 
@@ -23,32 +27,32 @@ def add_item(uid, item, qty=1):
     if p:
         p['itens'][item] = p['itens'].get(item, 0) + qty
 
+def remove_item(uid, item, qty=1):
+    p = get_player(uid)
+    if p and has_item(uid, item, qty):
+        p['itens'][item] -= qty
+        if p['itens'][item] == 0:
+            del p['itens'][item]
+
 def calc_dmg(uid):
     """Calcula dano da arma"""
     p = get_player(uid)
     if not p:
         return 0.5
-    
     dmg_map = {'🔷⚔️': 3, '💎⚔️': 2.5, '⚙️⚔️': 1.5, '🪨⚔️': 1, '🪵⚔️': 0.5}
-    dmg = dmg_map.get(p['arma'], 0.5)  # Mão = 0.5
-    
-    # Se fome baixa, reduz dano
+    dmg = dmg_map.get(p['arma'], 0.5)
     if p['fome'] < 3:
         dmg *= 0.5
-    
     return dmg + random.uniform(-0.2, 0.3)
 
 def apply_dmg(uid, dmg, defending=False):
-    """Aplica dano ao jogador com defesa e armadura"""
     p = get_player(uid)
     if not p:
         return False
     
-    # Reduz dano se defendendo com escudo
     if defending and p['escudo']:
         dmg *= 0.3
     
-    # Aplica defesa da armadura
     if p['armadura']:
         def_map = {'🔷': 3.5, '💎': 3, '⚙️': 1.5, '🥩': 1}
         for mat, val in def_map.items():
@@ -56,12 +60,10 @@ def apply_dmg(uid, dmg, defending=False):
                 dmg = max(0.5, dmg - val)
                 break
     
-    # Aplica dano final
     p['hp'] = max(0, p['hp'] - dmg)
     
-    # Se morreu
     if p['hp'] <= 0:
-        p['itens'].clear()  # PERDE TUDO
+        p['itens'].clear()
         p['hp'] = 20
         p['fome'] = 10
         p['level'] = max(1, p['level'] - 1)
@@ -102,14 +104,13 @@ class CombateView(discord.ui.View):
             await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
             return
         
-        # Calcular danos
         dmg_player = calc_dmg(self.uid)
         p = get_player(self.uid)
         
         # CREEPER ESPECIAL: dá 18 de dano e se mata
         if self.mob['nome'] == 'Creeper':
             dmg_mob = 18
-            self.mob_hp = -1  # Garante que vai morrer
+            self.mob_hp = -1
         else:
             dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
             self.mob_hp -= dmg_player
@@ -129,7 +130,6 @@ class CombateView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if self.mob_hp <= 0:
-            # Vitória
             xp = self.mob['xp']
             lvl_up = gain_xp(self.uid, xp)
             p = get_player(self.uid)
@@ -161,17 +161,16 @@ class CombateView(discord.ui.View):
             self.stop()
         
         elif morreu:
-            # Derrota
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O {self.mob['nome']} foi muito forte...\n"
-            desc += f"Perdeu 1 nível e TODOS os itens!"
+            desc += f"Você morreu e terá que começar tudo de novo!\n\n"
+            desc += f"Use `MS!aventura` para recomeçar"
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
             self.stop()
         
         else:
-            # Continua combate
             self.turno += 1
             embed = discord.Embed(title=f"⚔️ {self.mob['nome']}", description=desc, color=0xff8c00)
             await i.response.send_message(embed=embed, ephemeral=True)
@@ -182,7 +181,6 @@ class CombateView(discord.ui.View):
             await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
             return
         
-        # Verificar escudo
         if not has_item(self.uid, '🛡️'):
             embed = discord.Embed(
                 title="❌ Sem Escudo",
@@ -192,7 +190,6 @@ class CombateView(discord.ui.View):
             await i.response.send_message(embed=embed, ephemeral=True)
             return
         
-        # Aplicar defesa
         dmg_mob = random.uniform(self.mob['dano'][0], self.mob['dano'][1])
         morreu = apply_dmg(self.uid, dmg_mob, defending=True)
         p = get_player(self.uid)
@@ -207,20 +204,65 @@ class CombateView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if morreu:
-            # Derrota mesmo defendendo
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"Mesmo com a defesa, o {self.mob['nome']} foi muito forte...\n"
-            desc += f"Perdeu 1 nível e TODOS os itens!"
+            desc += f"Você morreu e terá que começar tudo de novo!\n\n"
+            desc += f"Use `MS!aventura` para recomeçar"
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
             self.stop()
         
         else:
-            # Continua combate
             self.turno += 1
             embed = discord.Embed(title="🛡️ Defesa", description=desc, color=0x4169e1)
             await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="❌ Fugir", style=discord.ButtonStyle.secondary)
+    async def fugir(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
+            return
+        
+        # 50% de chance de conseguir fugir
+        if random.randint(1, 2) == 1:
+            desc = f"🏃 Você conseguiu fugir do {self.mob['nome']}!\n\nVoltando pra floresta..."
+            
+            p = get_player(self.uid)
+            p['local'] = 'floresta'
+            barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+            embed_volta = discord.Embed(title="🌲 Floresta", description=f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']:.0f}/20 | {barra}\n\nVocê voltou para a floresta", color=0x00ff00)
+            from .aventura import AventuraView
+            view_volta = AventuraView(self.uid, self.msg)
+            await self.msg.edit(embed=embed_volta, view=view_volta)
+            await i.response.send_message(embed=discord.Embed(title="🏃 Fuga!", description=desc, color=0x00ff00), ephemeral=True)
+            self.stop()
+        else:
+            desc = f"❌ O {self.mob['nome']} não deixou você fugir!\n\nTem que lutar!"
+            await i.response.send_message(embed=discord.Embed(title="❌ Fuga Falhou!", description=desc, color=0xff0000), ephemeral=True)
+    
+    @discord.ui.button(label="🍗 Comer", style=discord.ButtonStyle.success, row=1)
+    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        
+        if not has_item(self.uid, '🍗', 1):
+            await i.response.send_message(embed=discord.Embed(title="❌ Sem Comida", description="Você precisa de 🍗 Comida!\n\nUse 🔱 Caçar antes da batalha", color=0xff0000), ephemeral=True)
+            return
+        
+        remove_item(self.uid, '🍗', 1)
+        recuperar_hp = random.randint(3, 5)
+        p['hp'] = min(20, p['hp'] + recuperar_hp)
+        
+        desc = f"🍗 Você comeu durante a batalha!\n\n"
+        desc += f"Regenerou **{recuperar_hp} HP**!\n"
+        desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
+        desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
+        
+        await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
 
 class Combate(commands.Cog):
     def __init__(self, bot):
@@ -228,3 +270,8 @@ class Combate(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Combate(bot))
+
+# BLOCO COMBATE - v2.0
+print "VERSÃO: 2.0 26/10/25"
+# ÚLTIMA ATUALIZAÇÃO: 26/10/2025
+print "- Bater (dano por arma) Defender (reduz 70%) Fugir (50% chance) Comer (regenera 3-5 HP) Morte (perde tudo)"
