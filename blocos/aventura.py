@@ -230,8 +230,31 @@ class OutrosView(discord.ui.View):
         view = CraftView(self.uid)
         await i.response.send_message(embed=discord.Embed(title="🔨 Crafting", description="Escolha uma opção:", color=0x8B4513), view=view, ephemeral=True)
     
-    @discord.ui.button(label="🤝 Trade", style=discord.ButtonStyle.primary)
-    async def trade(self, i: discord.Interaction, b: discord.ui.Button):
+    @discord.ui.button(label="🍗 Comer", style=discord.ButtonStyle.danger)
+    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        
+        if not has_item(self.uid, '🍗', 1):
+            await i.response.send_message(embed=discord.Embed(title="❌ Sem Comida", description="Você precisa de 🍗 Comida!\n\nUse 🔱 Caçar para conseguir", color=0xff0000), ephemeral=True)
+            return
+        
+        remove_item(self.uid, '🍗', 1)
+        
+        # Se tiver vida abaixo de 20, regenera
+        if p['hp'] < 20:
+            recuperar_hp = random.randint(3, 5)
+            p['hp'] = min(20, p['hp'] + recuperar_hp)
+            desc = f"🍗 Você comeu comida fresca e regenerou **{recuperar_hp} HP**!\n\n❤️ HP: {p['hp']:.0f}/20"
+        else:
+            recuperar_fome = random.randint(2, 4)
+            p['fome'] = min(10, p['fome'] + recuperar_fome)
+            desc = f"🍗 Você comeu comida e recuperou **{recuperar_fome} fome**!\n\n🍖 Fome: {p['fome']}/10"
+        
+        await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
@@ -370,41 +393,29 @@ class AventuraView(discord.ui.View):
         view = CraftView(self.uid)
         await i.response.send_message(embed=discord.Embed(title="🔨 Crafting", description="Escolha uma opção:", color=0x8B4513), view=view, ephemeral=True)
     
-    @discord.ui.button(label="🍖 Comer (5🪵)", style=discord.ButtonStyle.danger, row=1)
-    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+    @discord.ui.button(label="🔱 Caçar", style=discord.ButtonStyle.danger, row=1)
+    async def cacar(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
         
-        if not has_item(self.uid, '🪵', 5):
-            await i.response.send_message(embed=discord.Embed(title="❌ Sem Madeira", description="Você precisa de 5x 🪵!", color=0xff0000), ephemeral=True)
-            return
-        
         p = get_player(self.uid)
-        remove_item(self.uid, '🪵', 5)
+        p['fome'] = max(0, p['fome'] - 1)
         
-        # 30% de chance de conseguir Couro de um animal
-        couro_obtido = random.randint(1, 4) == 1
-        
-        # Regenera vida quando fome está cheia
-        if p['fome'] >= 10:
-            recuperar_hp = random.randint(2, 4)
-            p['hp'] = min(20, p['hp'] + recuperar_hp)
-            desc = f"🍖 Você comeu carne e regenerou **{recuperar_hp} HP**!\n❤️ {p['hp']:.0f}/20"
+        # 40% de chance de conseguir comida
+        if random.randint(1, 10) <= 4:
+            comida = random.randint(1, 3)
+            add_item(self.uid, '🍗', comida)
             
-            if couro_obtido:
-                add_item(self.uid, '🥩', 1)
-                desc += f"\n\n🥩 Você obteve um Couro de animal!"
+            desc = f"🔱 Você caçou e conseguiu **{comida}x 🍗 Comida**!\n\n"
+            desc += f"🍗 Total: {p['itens'].get('🍗', 0)}/16"
+            
+            embed = discord.Embed(title="🔱 Caça bem-sucedida!", description=desc, color=0x8B4513)
         else:
-            recuperar_fome = random.randint(3, 5)
-            p['fome'] = min(10, p['fome'] + recuperar_fome)
-            desc = f"🍖 Você comeu e recuperou **{recuperar_fome} fome**!\n🍖 {p['fome']}/10"
-            
-            if couro_obtido:
-                add_item(self.uid, '🥩', 1)
-                desc += f"\n\n🥩 Você obteve um Couro de animal!"
+            desc = f"🔱 Você tentou caçar mas não encontrou nada...\n\n-1 Fome"
+            embed = discord.Embed(title="🔱 Caça falhou", description=desc, color=0xAA6B35)
         
-        await i.response.send_message(embed=discord.Embed(title="🍖 Comeu!", description=desc, color=0xff0000), ephemeral=True)
+        await i.response.send_message(embed=embed, ephemeral=True)
         await self.update_embed()
     
     @discord.ui.button(label="😴 Dormir", style=discord.ButtonStyle.success, row=1)
