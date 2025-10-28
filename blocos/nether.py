@@ -6,7 +6,7 @@ Varas de Blaze: 25% drop, usam para Olhos do Fim
 import discord
 from discord.ext import commands
 import random
-from __main__ import aventuras, MOBS
+from __main__ import aventuras, MOBS, salvar_jogadores
 
 def get_player(uid):
     return aventuras.get(uid)
@@ -110,8 +110,8 @@ class CombateBlazeView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if self.blaze_hp <= 0:
-            p['em_combate'] = False
             xp = 25
+            p['em_combate'] = False
             lvl_up = gain_xp(self.uid, xp)
             p = get_player(self.uid)
             
@@ -120,12 +120,14 @@ class CombateBlazeView(discord.ui.View):
             desc += f"+{xp} XP"
             
             # 20% de chance de dropar Vara de Blaze
-            if random.randint(1, 1) == 1:
+            if random.randint(1, 5) == 1:
                 add_item(self.uid, '🔱', 1)
                 desc += f"\n+1x 🔱 Vara de Blaze!"
             
             if lvl_up:
                 desc += f"\n\n🎉 **LEVEL UP!** Nível {p['level']}!"
+            
+            salvar_jogadores()  # ⭐ SALVAR
             
             await i.response.send_message(embed=discord.Embed(title="🔥 Vitória!", description=desc, color=0xff4500), ephemeral=True)
             await self.msg.edit(view=None)
@@ -136,6 +138,8 @@ class CombateBlazeView(discord.ui.View):
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O Blaze foi muito forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
+            
+            salvar_jogadores()  # ⭐ SALVAR
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
@@ -179,6 +183,8 @@ class CombateBlazeView(discord.ui.View):
             desc += f"Mesmo com a defesa, o Blaze foi forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
             
+            salvar_jogadores()  # ⭐ SALVAR
+            
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
             self.stop()
@@ -187,6 +193,31 @@ class CombateBlazeView(discord.ui.View):
             self.turno += 1
             embed = discord.Embed(title="🛡️ Defesa", description=desc, color=0xff4500)
             await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🍗 Comer", style=discord.ButtonStyle.success, row=1)
+    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        
+        if not has_item(self.uid, '🍗', 1):
+            await i.response.send_message(embed=discord.Embed(title="❌ Sem Comida", description="Você precisa de 🍗 Comida!", color=0xff0000), ephemeral=True)
+            return
+        
+        remove_item(self.uid, '🍗', 1)
+        recuperar_hp = random.randint(3, 5)
+        p['hp'] = min(20, p['hp'] + recuperar_hp)
+        
+        desc = f"🍗 Você comeu durante a batalha!\n\n"
+        desc += f"Regenerou **{recuperar_hp} HP**!\n"
+        desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
+        desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
+        
+        salvar_jogadores()  # ⭐ SALVAR
+        
+        await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
 
 class NetherMelhorado(commands.Cog):
     def __init__(self, bot):
