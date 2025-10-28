@@ -110,6 +110,7 @@ class CombateBlazeView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if self.blaze_hp <= 0:
+            p['em_combate'] = False
             xp = 25
             lvl_up = gain_xp(self.uid, xp)
             p = get_player(self.uid)
@@ -119,7 +120,7 @@ class CombateBlazeView(discord.ui.View):
             desc += f"+{xp} XP"
             
             # 20% de chance de dropar Vara de Blaze
-            if random.randint(1, 5) == 1:
+            if random.randint(1, 1) == 1:
                 add_item(self.uid, '🔱', 1)
                 desc += f"\n+1x 🔱 Vara de Blaze!"
             
@@ -131,6 +132,7 @@ class CombateBlazeView(discord.ui.View):
             self.stop()
         
         elif morreu:
+            p['em_combate'] = False
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O Blaze foi muito forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
@@ -172,6 +174,7 @@ class CombateBlazeView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if morreu:
+            p['em_combate'] = False
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"Mesmo com a defesa, o Blaze foi forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
