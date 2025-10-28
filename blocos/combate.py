@@ -270,8 +270,3 @@ class Combate(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Combate(bot))
-
-# BLOCO COMBATE - v2.0
-print "VERSÃO: 2.0 26/10/25"
-# ÚLTIMA ATUALIZAÇÃO: 26/10/2025
-print "- Bater (dano por arma) Defender (reduz 70%) Fugir (50% chance) Comer (regenera 3-5 HP) Morte (perde tudo)"
