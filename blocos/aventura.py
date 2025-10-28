@@ -9,6 +9,90 @@ import random
 # Importar do bot.py
 from __main__ import aventuras, MOBS
 
+"""
+ADICIONE ESSAS FUNÇÕES NO SEU aventura.py
+Logo depois do import e antes das outras funções
+"""
+
+# ==================== SALVAR APÓS CADA AÇÃO ====================
+from __main__ import aventuras, salvar_jogadores
+
+def add_item(uid, item, qty=1):
+    p = get_player(uid)
+    if p:
+        p['itens'][item] = p['itens'].get(item, 0) + qty
+        salvar_jogadores()  # ⭐ SALVAR
+
+def remove_item(uid, item, qty=1):
+    p = get_player(uid)
+    if p and has_item(uid, item, qty):
+        p['itens'][item] -= qty
+        if p['itens'][item] == 0:
+            del p['itens'][item]
+        salvar_jogadores()  # ⭐ SALVAR
+
+def gain_xp(uid, qty):
+    p = get_player(uid)
+    if not p:
+        return False
+    p['xp'] += qty
+    if p['xp'] >= p['level'] * 10:
+        p['level'] += 1
+        p['xp'] = 0
+        p['hp'] = 20
+        salvar_jogadores()  # ⭐ SALVAR
+        return True
+    salvar_jogadores()  # ⭐ SALVAR
+    return False
+
+def create_player(uid, nome):
+    if uid not in aventuras:
+        aventuras[uid] = {
+            'nome': nome, 'hp': 20, 'fome': 10, 'level': 1, 'xp': 0,
+            'local': 'floresta', 'itens': {}, 'arma': None, 'armadura': None,
+            'escudo': False, 'mortes': 0, 'em_combate': False, 'em_acao': None,
+        }
+        salvar_jogadores()  # ⭐ SALVAR
+
+# ==================== TAMBÉM NO COMBATE ====================
+"""
+No seu combate.py, adicione salvar_jogadores() em:
+
+1. Depois de VITÓRIA:
+    xp = self.mob['xp']
+    p['em_combate'] = False
+    lvl_up = gain_xp(self.uid, xp)
+    salvar_jogadores()  # ⭐ AQUI
+
+2. Depois de DERROTA no Bater:
+    elif morreu:
+        p['em_combate'] = False
+        salvar_jogadores()  # ⭐ AQUI
+
+3. Depois de DERROTA no Defender:
+    if morreu:
+        p['em_combate'] = False
+        salvar_jogadores()  # ⭐ AQUI
+
+4. Depois de FUGA bem-sucedida:
+    if random.randint(1, 2) == 1:
+        p['em_combate'] = False
+        salvar_jogadores()  # ⭐ AQUI
+"""
+
+# ==================== TAMBÉM NO nether.py ====================
+"""
+Adicione o mesmo no nether.py:
+
+1. Depois de VITÓRIA Blaze:
+    p['em_combate'] = False
+    salvar_jogadores()  # ⭐ AQUI
+
+2. Depois de DERROTA Blaze:
+    p['em_combate'] = False
+    salvar_jogadores()  # ⭐ AQUI
+"""
+
 # ==================== FUNÇÕES ====================
 def get_player(uid):
     return aventuras.get(uid)
