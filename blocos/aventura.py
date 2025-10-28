@@ -383,7 +383,8 @@ class AventuraView(discord.ui.View):
         
         view = OutrosView(self.uid)
         embed = discord.Embed(title="📋 Menu Outros", description="Escolha uma opção:", color=0x9370DB)
-        await i.response.send_message(embed=embed, view=view, ephemeral=True)
+        await i.response.defer()
+        await i.followup.send(embed=embed, view=view, ephemeral=True)
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
