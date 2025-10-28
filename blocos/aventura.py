@@ -18,7 +18,7 @@ def create_player(uid, nome):
         aventuras[uid] = {
             'nome': nome, 'hp': 20, 'fome': 10, 'level': 1, 'xp': 0,
             'local': 'floresta', 'itens': {}, 'arma': None, 'armadura': None,
-            'escudo': False, 'mortes': 0,
+            'escudo': False, 'mortes': 0, 'em_combate': False, 'em_acao': None,
         }
 
 def has_item(uid, item, qty=1):
@@ -73,6 +73,10 @@ class LocaisView(discord.ui.View):
             mob_e = random.choice(['🧟', '🕷️', '💀', '🧨'])
             mob = MOBS[mob_e]
             
+            # Marcar que está em combate
+            p = get_player(self.uid)
+            p['em_combate'] = True
+            
             from .combate import CombateView
             
             view = CombateView(self.uid, mob, self.msg)
@@ -124,6 +128,8 @@ class LocaisView(discord.ui.View):
             return
         
         p['local'] = 'nether'
+        # Marcar que está em combate
+        p['em_combate'] = True
         
         from .combate import CombateView
         
@@ -310,6 +316,13 @@ class MenuAventuraView(discord.ui.View):
             return
         
         p = get_player(self.uid)
+        
+        # Se estava em combate, volta para o combate
+        if p.get('em_combate'):
+            await i.response.send_message("⚠️ Você não pode retomar durante um combate!", ephemeral=True)
+            return
+        
+        # Se estava em uma ação específica (locais, outros), volta para a aventura normal
         barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
         
         desc = f"**{p['nome']}** | Lv. {p['level']} (XP: {p['xp']}/{p['level']*10})\n"
@@ -515,6 +528,12 @@ class Aventura(commands.Cog):
         """Controla sua aventura: cria, pausa, retoma ou recomeça"""
         uid = ctx.author.id
         p = get_player(uid)
+        
+        # Bloquear se está em combate
+        if p and p.get('em_combate'):
+            embed = discord.Embed(title="⚠️ Você está em combate!", description="Termine a luta primeiro!", color=0xff0000)
+            await ctx.send(embed=embed)
+            return
         
         if acao is None:
             if not p:
