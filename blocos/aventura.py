@@ -453,20 +453,30 @@ class Aventura(commands.Cog):
         self.bot = bot
     
     @commands.command(name='aventura')
-    async def aventura_cmd(self, ctx):
-        """Inicia uma aventura Minecraft"""
+    async def aventura_cmd(self, ctx, acao: str = None):
+        """Controla sua aventura: cria, pausa, retoma ou recomeça"""
         uid = ctx.author.id
-        create_player(uid, ctx.author.display_name)
         p = get_player(uid)
         
-        barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
-        desc = f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']}/20 | {barra}\n\n"
-        desc += "Você acordou em uma floresta densa.\nEscolha uma ação:"
-        
-        embed = discord.Embed(title="🌲 Floresta do Minecraft", description=desc, color=0x00ff00)
-        msg = await ctx.send(embed=embed)
-        view = AventuraView(uid, msg)
-        await msg.edit(view=view)
+        if acao is None:
+            # Se não tem aventura, cria
+            if not p:
+                create_player(uid, ctx.author.display_name)
+                p = get_player(uid)
+                
+                barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+                desc = f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']}/20 | {barra}\n\n"
+                desc += "Você acordou em uma floresta densa.\nEscolha uma ação:"
+                
+                embed = discord.Embed(title="🌲 Floresta do Minecraft", description=desc, color=0x00ff00)
+                msg = await ctx.send(embed=embed)
+                view = AventuraView(uid, msg)
+                await msg.edit(view=view)
+            else:
+                # Se já tem, mostra opções
+                view = MenuAventuraView(uid, ctx)
+                embed = discord.Embed(title="📋 Menu de Aventura", description="Escolha uma opção:", color=0x4169e1)
+                await ctx.send(embed=embed, view=view)
     
     @commands.command(name='inventario')
     async def inventario_cmd(self, ctx):
