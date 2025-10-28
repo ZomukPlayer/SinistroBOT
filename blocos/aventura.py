@@ -70,12 +70,11 @@ class LocaisView(discord.ui.View):
         p['local'] = 'caverna'
         
         if random.randint(1, 4) == 1:  # 25% de chance
+            p = get_player(self.uid)
+            p['em_combate'] = True  # ⭐ FICA TRUE AQUI
+            
             mob_e = random.choice(['🧟', '🕷️', '💀', '🧨'])
             mob = MOBS[mob_e]
-            
-            # Marcar que está em combate
-            p = get_player(self.uid)
-            p['em_combate'] = True
             
             from .combate import CombateView
             
@@ -131,14 +130,24 @@ class LocaisView(discord.ui.View):
         # Marcar que está em combate
         p['em_combate'] = True
         
-        from .combate import CombateView
-        
-        mob = MOBS['🐷']
-        view = CombateView(self.uid, mob, self.msg)
-        desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
-        embed = discord.Embed(title="⚔️ COMBATE ÉPICO!", description=desc, color=0xff4500)
-        await self.msg.edit(embed=embed, view=view)
-        await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** feroz apareceu!", color=0xff0000), ephemeral=True)
+        # 70% Piglin, 30% Blaze
+        if random.randint(1, 10) <= 7:
+            from .combate import CombateView
+            
+            mob = MOBS['🐷']
+            view = CombateView(self.uid, mob, self.msg)
+            desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
+            embed = discord.Embed(title="⚔️ COMBATE ÉPICO!", description=desc, color=0xff4500)
+            await self.msg.edit(embed=embed, view=view)
+            await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** feroz apareceu!", color=0xff0000), ephemeral=True)
+        else:
+            from .nether import CombateBlazeView
+            
+            view = CombateBlazeView(self.uid, self.msg)
+            desc = f"**Blaze Infernal**\n💪 HP: 15\n\nEscolha sua ação:"
+            embed = discord.Embed(title="🔥 BLAZE!", description=desc, color=0xff4500)
+            await self.msg.edit(embed=embed, view=view)
+            await i.response.send_message(embed=discord.Embed(title="🔥 BLAZE APARECEU!", description="Um **Blaze** explosivo apareceu!", color=0xff0000), ephemeral=True)
     
     @discord.ui.button(label="🏜️ Deserto (Lv3+)", style=discord.ButtonStyle.secondary)
     async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
