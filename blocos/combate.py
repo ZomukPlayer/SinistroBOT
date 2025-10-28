@@ -9,6 +9,7 @@ SISTEMAS:
 - Fugir (50% chance)
 - Comer (regenera 3-5 HP)
 - Morte (perde tudo)
+- Verifics se em batalha
 """
 import discord
 from discord.ext import commands
@@ -131,6 +132,7 @@ class CombateView(discord.ui.View):
         
         if self.mob_hp <= 0:
             xp = self.mob['xp']
+            p['em_combate'] = False
             lvl_up = gain_xp(self.uid, xp)
             p = get_player(self.uid)
             
@@ -161,6 +163,7 @@ class CombateView(discord.ui.View):
             self.stop()
         
         elif morreu:
+            p['em_combate'] = False
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O {self.mob['nome']} foi muito forte...\n"
             desc += f"Você morreu e terá que começar tudo de novo!\n\n"
@@ -204,6 +207,7 @@ class CombateView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if morreu:
+            p['em_combate'] = False
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"Mesmo com a defesa, o {self.mob['nome']} foi muito forte...\n"
             desc += f"Você morreu e terá que começar tudo de novo!\n\n"
