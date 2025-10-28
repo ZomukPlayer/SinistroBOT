@@ -13,7 +13,14 @@ SISTEMAS:
 import discord
 from discord.ext import commands
 import random
-from __main__ import aventuras
+
+# Variável global que será injetada pelo bot.py
+aventuras = {}
+
+def set_aventuras(dict_ref):
+    """Função para injetar a referência do dicionário global"""
+    global aventuras
+    aventuras = dict_ref
 
 def get_player(uid):
     return aventuras.get(uid)
@@ -142,15 +149,146 @@ class ConfirmarView(discord.ui.View):
 # ==================== LOCAIS ====================
 class LocaisView(discord.ui.View):
     def __init__(self, uid, msg):
-        super().__init__(timeout=None)
+        super().__init__(timeout=60)
         self.uid = uid
         self.msg = msg
+    
+    @discord.ui.button(label="🕳️ Caverna", style=discord.ButtonStyle.primary)
+    async def caverna(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        p['local'] = 'caverna'
+        p['fome'] = max(0, p['fome'] - 2)
+        
+        desc = f"🕳️ Você entrou em uma caverna escura!\n\n-2 Fome\n\nLocal: {p['local'].title()}"
+        embed = discord.Embed(title="🕳️ Caverna", description=desc, color=0x696969)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🔥 Nether", style=discord.ButtonStyle.danger)
+    async def nether(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        dano = random.randint(2, 5)
+        p['hp'] -= dano
+        p['fome'] = max(0, p['fome'] - 3)
+        
+        if p['hp'] <= 0:
+            p['hp'] = 20
+            p['fome'] = 10
+            p['itens'].clear()
+            desc = f"🔥 Você foi para o Nether!\n\n💀 **VOCÊ MORREU NA LAVA!**"
+        else:
+            desc = f"🔥 Você entrou no Nether!\nTomou {dano} de dano!\n\n❤️ HP: {p['hp']:.0f}/20"
+        
+        embed = discord.Embed(title="🔥 Nether", description=desc, color=0xFF6347)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🏜️ Deserto", style=discord.ButtonStyle.secondary)
+    async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        p['local'] = 'deserto'
+        p['fome'] = max(0, p['fome'] - 3)
+        
+        desc = f"🏜️ Você está no Deserto!\n\n-3 Fome (muito quente!)\n\nLocal: {p['local'].title()}"
+        embed = discord.Embed(title="🏜️ Deserto", description=desc, color=0xEDC9AF)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🌑 The End", style=discord.ButtonStyle.primary)
+    async def the_end(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        if not has_item(self.uid, '🔷'):
+            await i.response.send_message(embed=discord.Embed(title="❌ Acesso Negado", description="Você precisa de Netherita (🔷) para entrar!", color=0xff0000), ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        p['local'] = 'the_end'
+        p['fome'] = max(0, p['fome'] - 1)
+        
+        desc = f"🌑 Você entrou em The End!\n\nLocal: {p['local'].title()}\n-1 Fome"
+        embed = discord.Embed(title="🌑 The End", description=desc, color=0x1a1a2e)
+        await i.response.send_message(embed=embed, ephemeral=True)
 
 # ==================== OUTROS ====================
 class OutrosView(discord.ui.View):
     def __init__(self, uid):
         super().__init__(timeout=60)
         self.uid = uid
+    
+    @discord.ui.button(label="🎒 Inventário", style=discord.ButtonStyle.primary)
+    async def inventario(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        if not p['itens']:
+            desc = "🎒 Inventário vazio!"
+        else:
+            desc = "🎒 Seu Inventário:\n\n"
+            for item, qty in p['itens'].items():
+                desc += f"{item} x{qty}\n"
+        
+        embed = discord.Embed(title="🎒 Inventário", description=desc, color=0x8B4513)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🔨 Craftar", style=discord.ButtonStyle.secondary)
+    async def craftar(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        desc = "🔨 Sistema de Crafting em desenvolvimento!"
+        embed = discord.Embed(title="🔨 Crafting", description=desc, color=0xC0C0C0)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="👤 Perfil", style=discord.ButtonStyle.success)
+    async def perfil(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+        
+        desc = f"**{p['nome']}** | Lv. {p['level']}\n"
+        desc += f"❤️ HP: {p['hp']:.0f}/20 | Fome: {barra}\n"
+        desc += f"XP: {p['xp']}/{p['level']*10}\n"
+        desc += f"📍 Local: {p['local'].title()}\n"
+        desc += f"💀 Mortes: {p['mortes']}"
+        
+        embed = discord.Embed(title="👤 Seu Perfil", description=desc, color=0x9370DB)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🍖 Comer", style=discord.ButtonStyle.danger)
+    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        if not has_item(self.uid, '🍗'):
+            await i.response.send_message(embed=discord.Embed(title="❌ Sem Comida", description="Você não tem 🍗 Comida!", color=0xff0000), ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        remove_item(self.uid, '🍗', 1)
+        p['fome'] = min(10, p['fome'] + 3)
+        
+        desc = f"🍖 Você comeu!\n+3 Fome\n\nFome atual: {p['fome']}/10"
+        embed = discord.Embed(title="🍖 Comendo", description=desc, color=0xFF6347)
+        await i.response.send_message(embed=embed, ephemeral=True)
 
 # ==================== AVENTURA ====================
 class AventuraView(discord.ui.View):
@@ -230,7 +368,7 @@ class AventuraView(discord.ui.View):
         comida_atual = p['itens'].get('🍗', 0)
         
         if comida_atual >= 16:
-            await i.response.send_message(embed=discord.Embed(title="❌ Mochila Cheia", description=f"🍗 Você já tem 16/16 comidas!\n\nUse 🍗 Comer para liberar espaço", color=0xff0000), ephemeral=True)
+            await i.response.send_message(embed=discord.Embed(title="❌ Mochila Cheia", description=f"🍗 Você já tem 16/16 comidas!\n\nUse 🍖 Comer para liberar espaço", color=0xff0000), ephemeral=True)
             return
         
         p['fome'] = max(0, p['fome'] - 1)
@@ -307,4 +445,6 @@ class Aventura(commands.Cog):
                 await ctx.send(embed=embed, view=view)
 
 async def setup(bot):
+    # Injetar a referência do dicionário global
+    set_aventuras(bot.aventuras if hasattr(bot, 'aventuras') else {})
     await bot.add_cog(Aventura(bot))
