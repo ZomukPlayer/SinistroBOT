@@ -215,15 +215,15 @@ class LocaisView(discord.ui.View):
         p['em_combate'] = True
         
         # 70% Piglin, 30% Blaze
-        if random.randint(1, 10) <= 7:
+        if random.randint(1, 3) <= 10:
             from .combate import CombateView
             
             mob = MOBS['🐷']
             view = CombateView(self.uid, mob, self.msg)
             desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
-            embed = discord.Embed(title="⚔️ COMBATE ÉPICO!", description=desc, color=0xff4500)
+            embed = discord.Embed(title="⚔️ PIGLIN APARECEU!", description=desc, color=0xff4500)
             await self.msg.edit(embed=embed, view=view)
-            await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** feroz apareceu!", color=0xff0000), ephemeral=True)
+            await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** apareceu!", color=0xff0000), ephemeral=True)
         else:
             from .nether import CombateBlazeView
             
@@ -231,7 +231,7 @@ class LocaisView(discord.ui.View):
             desc = f"**Blaze Infernal**\n💪 HP: 15\n\nEscolha sua ação:"
             embed = discord.Embed(title="🔥 BLAZE!", description=desc, color=0xff4500)
             await self.msg.edit(embed=embed, view=view)
-            await i.response.send_message(embed=discord.Embed(title="🔥 BLAZE APARECEU!", description="Um **Blaze** explosivo apareceu!", color=0xff0000), ephemeral=True)
+            await i.response.send_message(embed=discord.Embed(title="🔥 BLAZE APARECEU!", description="Um **Blaze** apareceu!", color=0xff0000), ephemeral=True)
     
     @discord.ui.button(label="🏜️ Deserto (Lv3+)", style=discord.ButtonStyle.secondary)
     async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
@@ -247,7 +247,7 @@ class LocaisView(discord.ui.View):
         p['local'] = 'deserto'
         
         if random.randint(1, 10) >= 7:
-            diamantes = random.randint(3, 6)
+            diamantes = random.randint(3, 10)
             add_item(self.uid, '💎', diamantes)
             lvl = gain_xp(self.uid, 12)
             desc = f"💎 **TESOURO ENCONTRADO!**\n+{diamantes}x 💎\n+12 XP"
