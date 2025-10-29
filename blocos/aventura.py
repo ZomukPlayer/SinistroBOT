@@ -176,22 +176,9 @@ async def nether(self, i: discord.Interaction, b: discord.ui.Button):
     embed = discord.Embed(title="🔥 Você está no Nether!", description="Escolha um local:", color=0xff4500)
     await self.msg.edit(embed=embed, view=view)
     await i.response.send_message("🔥 Bem-vindo ao Nether!", ephemeral=True)
-            
-mob = MOBS['🐷']
-    view = CombateView(self.uid, mob, self.msg)
-    desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
-    embed = discord.Embed(title="⚔️ PIGLIN APARECEU!", description=desc, color=0xff4500)
-    await self.msg.edit(embed=embed, view=view)
-await i.response.send_message(embed=discord.Embed(title="🔥 NETHER!", description="Um **Piglin** apareceu!", color=0xff0000), ephemeral=True)
-        else:
-            from .nether import CombateBlazeView
-            
-            view = CombateBlazeView(self.uid, self.msg)
-            desc = f"**Blaze Infernal**\n💪 HP: 15\n\nEscolha sua ação:"
-            embed = discord.Embed(title="🔥 BLAZE!", description=desc, color=0xff4500)
-            await self.msg.edit(embed=embed, view=view)
-            await i.response.send_message(embed=discord.Embed(title="🔥 BLAZE APARECEU!", description="Um **Blaze** apareceu!", color=0xff0000), ephemeral=True)
-    
+
+# DESERTO
+
     @discord.ui.button(label="🏜️ Deserto (Lv3+)", style=discord.ButtonStyle.secondary)
     async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
