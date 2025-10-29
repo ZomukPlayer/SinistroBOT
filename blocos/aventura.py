@@ -5,49 +5,7 @@ Comandos: MS!aventura, MS!inventario
 import discord
 from discord.ext import commands
 import random
-
-# Importar do bot.py
-from __main__ import aventuras, MOBS
-
-# ==================== SALVAR APÓS CADA AÇÃO ====================
-from __main__ import aventuras, salvar_jogadores
-
-def add_item(uid, item, qty=1):
-    p = get_player(uid)
-    if p:
-        p['itens'][item] = p['itens'].get(item, 0) + qty
-        salvar_jogadores()  # ⭐ SALVAR
-
-def remove_item(uid, item, qty=1):
-    p = get_player(uid)
-    if p and has_item(uid, item, qty):
-        p['itens'][item] -= qty
-        if p['itens'][item] == 0:
-            del p['itens'][item]
-        salvar_jogadores()  # ⭐ SALVAR
-
-def gain_xp(uid, qty):
-    p = get_player(uid)
-    if not p:
-        return False
-    p['xp'] += qty
-    if p['xp'] >= p['level'] * 10:
-        p['level'] += 1
-        p['xp'] = 0
-        p['hp'] = 20
-        salvar_jogadores()  # ⭐ SALVAR
-        return True
-    salvar_jogadores()  # ⭐ SALVAR
-    return False
-
-def create_player(uid, nome):
-    if uid not in aventuras:
-        aventuras[uid] = {
-            'nome': nome, 'hp': 20, 'fome': 10, 'level': 1, 'xp': 0,
-            'local': 'floresta', 'itens': {}, 'arma': None, 'armadura': None,
-            'escudo': False, 'mortes': 0, 'em_combate': False, 'em_acao': None,
-        }
-        salvar_jogadores()  # ⭐ SALVAR
+from __main__ import aventuras, MOBS, salvar_jogadores
 
 # ==================== FUNÇÕES ====================
 def get_player(uid):
@@ -60,6 +18,7 @@ def create_player(uid, nome):
             'local': 'floresta', 'itens': {}, 'arma': None, 'armadura': None,
             'escudo': False, 'mortes': 0, 'em_combate': False, 'em_acao': None,
         }
+        salvar_jogadores()
 
 def has_item(uid, item, qty=1):
     p = get_player(uid)
@@ -69,6 +28,7 @@ def add_item(uid, item, qty=1):
     p = get_player(uid)
     if p:
         p['itens'][item] = p['itens'].get(item, 0) + qty
+        salvar_jogadores()
 
 def remove_item(uid, item, qty=1):
     p = get_player(uid)
@@ -76,6 +36,7 @@ def remove_item(uid, item, qty=1):
         p['itens'][item] -= qty
         if p['itens'][item] == 0:
             del p['itens'][item]
+        salvar_jogadores()
 
 def gain_xp(uid, qty):
     p = get_player(uid)
@@ -86,7 +47,9 @@ def gain_xp(uid, qty):
         p['level'] += 1
         p['xp'] = 0
         p['hp'] = 20
+        salvar_jogadores()
         return True
+    salvar_jogadores()
     return False
 
 # ==================== VIEWS ====================
@@ -109,10 +72,8 @@ class LocaisView(discord.ui.View):
         
         p['local'] = 'caverna'
         
-        if random.randint(1, 4) == 1:  # 25% de chance
-            p = get_player(self.uid)
-            p['em_combate'] = True  # ⭐ FICA TRUE AQUI
-            
+        if random.randint(1, 4) == 1:
+            p['em_combate'] = True
             mob_e = random.choice(['🧟', '🕷️', '💀', '🧨'])
             mob = MOBS[mob_e]
             
@@ -134,7 +95,6 @@ class LocaisView(discord.ui.View):
                     desc += f"\n\n🎉 LEVEL UP! Nível {p['level']}!"
                 embed = discord.Embed(title="💎 SORTE!", description=desc, color=0x00FFFF)
             elif random.randint(1, 5) == 1:
-                # Chance de encontrar Ferro
                 ferro = random.randint(1, 3)
                 add_item(self.uid, '⚙️', ferro)
                 lvl = gain_xp(self.uid, 5)
@@ -154,26 +114,26 @@ class LocaisView(discord.ui.View):
                 embed = discord.Embed(title="⛏️ Minério", description=desc, color=0x808080)
             
             await i.response.send_message(embed=embed, ephemeral=True)
-
+    
     @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
-async def nether(self, i: discord.Interaction, b: discord.ui.Button):
-    if i.user.id != self.uid:
-        await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
-        return
-    
-    p = get_player(self.uid)
-    if p['level'] < 5:
-        await i.response.send_message("❌ Nível mínimo: 5", ephemeral=True)
-        return
-    
-    p['local'] = 'nether'
-    
-    from .nether import NetherMenuView
-    
-    view = NetherMenuView(self.uid, self.msg)
-    embed = discord.Embed(title="🔥 Você está no Nether!", description="Escolha um local:", color=0xff4500)
-    await self.msg.edit(embed=embed, view=view)
-    await i.response.send_message("🔥 Bem-vindo ao Nether!", ephemeral=True)
+    async def nether(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        if p['level'] < 5:
+            await i.response.send_message("❌ Nível mínimo: 5", ephemeral=True)
+            return
+        
+        p['local'] = 'nether'
+        
+        from .nether import NetherMenuView
+        
+        view = NetherMenuView(self.uid, self.msg)
+        embed = discord.Embed(title="🔥 Você está no Nether!", description="Escolha um local:", color=0xff4500)
+        await self.msg.edit(embed=embed, view=view)
+        await i.response.send_message("🔥 Bem-vindo ao Nether!", ephemeral=True)
     
     @discord.ui.button(label="🏜️ Deserto (Lv3+)", style=discord.ButtonStyle.secondary)
     async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
@@ -189,7 +149,7 @@ async def nether(self, i: discord.Interaction, b: discord.ui.Button):
         p['local'] = 'deserto'
         
         if random.randint(1, 10) >= 7:
-            diamantes = random.randint(3, 10)
+            diamantes = random.randint(3, 6)
             add_item(self.uid, '💎', diamantes)
             lvl = gain_xp(self.uid, 12)
             desc = f"💎 **TESOURO ENCONTRADO!**\n+{diamantes}x 💎\n+12 XP"
@@ -222,8 +182,6 @@ async def nether(self, i: discord.Interaction, b: discord.ui.Button):
         
         p = get_player(self.uid)
         p['local'] = 'the_end'
-        
-        # Remove os 5 olhos ao entrar
         remove_item(self.uid, '👁️', 5)
         
         from .end import CristaisView
@@ -285,7 +243,6 @@ class OutrosView(discord.ui.View):
         
         remove_item(self.uid, '🍗', 1)
         
-        # Se tiver vida abaixo de 20, regenera
         if p['hp'] < 20:
             recuperar_hp = random.randint(3, 5)
             p['hp'] = min(20, p['hp'] + recuperar_hp)
@@ -295,6 +252,7 @@ class OutrosView(discord.ui.View):
             p['fome'] = min(10, p['fome'] + recuperar_fome)
             desc = f"🍗 Você comeu comida e recuperou **{recuperar_fome} fome**!\n\n🍖 Fome: {p['fome']}/10"
         
+        salvar_jogadores()
         await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
     
     @discord.ui.button(label="👤 Perfil", style=discord.ButtonStyle.secondary)
@@ -307,12 +265,10 @@ class OutrosView(discord.ui.View):
         
         desc = f"**{p['nome']}** | Lv. {p['level']}\n"
         desc += f"❤️ HP: {p['hp']:.0f}/20 | 🍖 Fome: {p['fome']}/10\n\n"
-        
         desc += f"**STATS:**\n"
         desc += f"📊 XP: {p['xp']}/{p['level']*10}\n"
         desc += f"💀 Mortes: {p['mortes']}\n"
         desc += f"📍 Local: {p['local']}\n\n"
-        
         desc += f"**EQUIPAMENTO:**\n"
         desc += f"⚔️ Arma: {p['arma'] if p['arma'] else 'Nenhuma'}\n"
         desc += f"🧥 Armadura: {p['armadura'] if p['armadura'] else 'Nenhuma'}\n"
@@ -352,12 +308,10 @@ class MenuAventuraView(discord.ui.View):
         
         p = get_player(self.uid)
         
-        # Se estava em combate, volta para o combate
         if p.get('em_combate'):
             await i.response.send_message("⚠️ Você não pode retomar durante um combate!", ephemeral=True)
             return
         
-        # Se estava em uma ação específica (locais, outros), volta para a aventura normal
         barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
         
         desc = f"**{p['nome']}** | Lv. {p['level']} (XP: {p['xp']}/{p['level']*10})\n"
