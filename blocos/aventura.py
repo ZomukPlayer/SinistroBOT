@@ -176,14 +176,6 @@ async def nether(self, i: discord.Interaction, b: discord.ui.Button):
     embed = discord.Embed(title="🔥 Você está no Nether!", description="Escolha um local:", color=0xff4500)
     await self.msg.edit(embed=embed, view=view)
     await i.response.send_message("🔥 Bem-vindo ao Nether!", ephemeral=True)
-        
-        p['local'] = 'nether'
-        # Marcar que está em combate
-        p['em_combate'] = True
-        
-        # 70% Piglin, 30% Blaze
-        if random.randint(1, 3) <= 10:
-            from .combate import CombateView
             
             mob = MOBS['🐷']
             view = CombateView(self.uid, mob, self.msg)
