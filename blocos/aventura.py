@@ -169,20 +169,20 @@ class LocaisView(discord.ui.View):
         
         await i.response.send_message(embed=embed, ephemeral=True)
     
-    @discord.ui.button(label="🌌 The End (5👁️)", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="🌌 The End (7👁️)", style=discord.ButtonStyle.success)
     async def the_end(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
         
-        if not has_item(self.uid, '👁️', 5):
+        if not has_item(self.uid, '👁️', 7):
             olhos = get_player(self.uid)['itens'].get('👁️', 0)
-            await i.response.send_message(f"❌ Você precisa de 5 Olhos do Fim!\n\n👁️ Você tem: {olhos}/5", ephemeral=True)
+            await i.response.send_message(f"❌ Você precisa de 7 Olhos do Fim!\n\n👁️ Você tem: {olhos}/5", ephemeral=True)
             return
         
         p = get_player(self.uid)
         p['local'] = 'the_end'
-        remove_item(self.uid, '👁️', 5)
+        remove_item(self.uid, '👁️', 7)
         
         from .end import CristaisView
         
