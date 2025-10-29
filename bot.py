@@ -4,6 +4,7 @@ from discord import app_commands
 import os
 import random
 import json
+import asyncpg
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,7 +16,6 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='MS!', intents=intents)
 
 WELCOME_CHANNEL_ID = 1428075891874861076
-SAVE_FILE = "jogadores.json"
 
 # ==================== CONFIGURAÇÕES GLOBAIS ====================
 CRAFTING = {
@@ -44,35 +44,89 @@ MOBS = {
 
 # ==================== DADOS GLOBAIS ====================
 aventuras = {}
+db_pool = None
 
-# ==================== FUNÇÕES DE SALVAR/CARREGAR ====================
-def salvar_jogadores():
-    """Salva todos os jogadores em JSON"""
+# ==================== BANCO DE DADOS ====================
+async def init_db():
+    """Inicializa o pool de conexões e cria a tabela"""
+    global db_pool
     try:
-        # Converter IDs para string (JSON não aceita int como key)
-        dados_salvos = {str(uid): dados for uid, dados in aventuras.items()}
-        with open(SAVE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(dados_salvos, f, ensure_ascii=False, indent=2)
-        print(f"✅ {len(aventuras)} jogadores salvos em {SAVE_FILE}")
+        db_url = os.getenv('DATABASE_URL')
+        if not db_url:
+            print("❌ DATABASE_URL não encontrada no .env!")
+            return False
+        
+        db_pool = await asyncpg.create_pool(db_url, min_size=1, max_size=10)
+        print("✅ Pool de conexões criado")
+        
+        # Criar tabela se não existir
+        async with db_pool.acquire() as conn:
+            await conn.execute('''
+                CREATE TABLE IF NOT EXISTS jogadores (
+                    uid BIGINT PRIMARY KEY,
+                    dados JSONB NOT NULL
+                )
+            ''')
+        print("✅ Tabela de jogadores criada")
+        return True
+    except Exception as e:
+        print(f"❌ Erro ao inicializar DB: {e}")
+        return False
+
+async def salvar_jogador(uid, dados):
+    """Salva um jogador no banco de dados"""
+    try:
+        async with db_pool.acquire() as conn:
+            await conn.execute(
+                'INSERT INTO jogadores (uid, dados) VALUES ($1, $2) ON CONFLICT (uid) DO UPDATE SET dados = $2',
+                uid, json.dumps(dados)
+            )
+    except Exception as e:
+        print(f"❌ Erro ao salvar jogador {uid}: {e}")
+
+async def carregar_jogador(uid):
+    """Carrega um jogador do banco de dados"""
+    try:
+        async with db_pool.acquire() as conn:
+            resultado = await conn.fetchval(
+                'SELECT dados FROM jogadores WHERE uid = $1',
+                uid
+            )
+            if resultado:
+                return json.loads(resultado)
+        return None
+    except Exception as e:
+        print(f"❌ Erro ao carregar jogador {uid}: {e}")
+        return None
+
+async def carregar_todos_jogadores():
+    """Carrega TODOS os jogadores do banco"""
+    try:
+        async with db_pool.acquire() as conn:
+            resultados = await conn.fetch(
+                'SELECT uid, dados FROM jogadores'
+            )
+            jogadores = {}
+            for row in resultados:
+                jogadores[row['uid']] = json.loads(row['dados'])
+            print(f"✅ {len(jogadores)} jogadores carregados do banco")
+            return jogadores
+    except Exception as e:
+        print(f"❌ Erro ao carregar todos os jogadores: {e}")
+        return {}
+
+async def salvar_jogadores():
+    """Salva TODOS os jogadores (função global)"""
+    try:
+        async with db_pool.acquire() as conn:
+            for uid, dados in aventuras.items():
+                await conn.execute(
+                    'INSERT INTO jogadores (uid, dados) VALUES ($1, $2) ON CONFLICT (uid) DO UPDATE SET dados = $2',
+                    uid, json.dumps(dados)
+                )
+        print(f"✅ {len(aventuras)} jogadores salvos no banco")
     except Exception as e:
         print(f"❌ Erro ao salvar jogadores: {e}")
-
-def carregar_jogadores():
-    """Carrega todos os jogadores do JSON"""
-    global aventuras
-    try:
-        if os.path.exists(SAVE_FILE):
-            with open(SAVE_FILE, 'r', encoding='utf-8') as f:
-                dados_salvos = json.load(f)
-            # Converter string keys de volta para int
-            aventuras = {int(uid): dados for uid, dados in dados_salvos.items()}
-            print(f"✅ {len(aventuras)} jogadores carregados de {SAVE_FILE}")
-        else:
-            aventuras = {}
-            print(f"ℹ️ Arquivo {SAVE_FILE} não encontrado. Começando novo.")
-    except Exception as e:
-        print(f"❌ Erro ao carregar jogadores: {e}")
-        aventuras = {}
 
 # ==================== EVENTOS ====================
 @bot.event
@@ -202,16 +256,18 @@ async def load_modules():
 
 @bot.event
 async def setup_hook():
-    # ⭐ CARREGAR JOGADORES DO JSON
-    carregar_jogadores()
+    global aventuras
+    # ⭐ Inicializar banco de dados
+    if await init_db():
+        aventuras = await carregar_todos_jogadores()
     await load_modules()
 
 # ==================== COMANDO PARA SALVAR MANUALMENTE ====================
 @bot.command(name='salvar')
-@commands.is_owner()  # Só o dono do bot pode usar
+@commands.is_owner()
 async def salvar_cmd(ctx):
     """Salva todos os dados dos jogadores (admin only)"""
-    salvar_jogadores()
+    await salvar_jogadores()
     embed = discord.Embed(title="💾 Dados Salvos!", description=f"✅ {len(aventuras)} jogadores salvos", color=discord.Color.green())
     await ctx.send(embed=embed)
 
@@ -222,5 +278,5 @@ if not token or token.strip() == "":
     exit()
 else:
     print("✅ Token carregado com sucesso")
-    print("🎮 Minecraft 2 - FASE 2.0 (Modular)")
+    print("🎮 Minecraft 2 - FASE 2.0 (Modular com PostgreSQL)")
     bot.run(token)
