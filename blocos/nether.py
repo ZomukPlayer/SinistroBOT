@@ -127,7 +127,7 @@ class CombateBlazeView(discord.ui.View):
             if lvl_up:
                 desc += f"\n\n🎉 **LEVEL UP!** Nível {p['level']}!"
             
-            salvar_jogadores()  # ⭐ SALVAR
+            await salvar_jogadores()  # ⭐ SALVAR
             
             await i.response.send_message(embed=discord.Embed(title="🔥 Vitória!", description=desc, color=0xff4500), ephemeral=True)
             await self.msg.edit(view=None)
@@ -139,7 +139,7 @@ class CombateBlazeView(discord.ui.View):
             desc += f"O Blaze foi muito forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
             
-            salvar_jogadores()  # ⭐ SALVAR
+            await salvar_jogadores()  # ⭐ SALVAR
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
@@ -183,7 +183,7 @@ class CombateBlazeView(discord.ui.View):
             desc += f"Mesmo com a defesa, o Blaze foi forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
             
-            salvar_jogadores()  # ⭐ SALVAR
+            await salvar_jogadores()  # ⭐ SALVAR
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
@@ -215,7 +215,7 @@ class CombateBlazeView(discord.ui.View):
         desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
         desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
         
-        salvar_jogadores()  # ⭐ SALVAR
+        await salvar_jogadores()  # ⭐ SALVAR
         
         await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
 
