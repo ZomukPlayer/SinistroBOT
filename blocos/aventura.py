@@ -9,11 +9,6 @@ import random
 # Importar do bot.py
 from __main__ import aventuras, MOBS
 
-"""
-ADICIONE ESSAS FUNÇÕES NO SEU aventura.py
-Logo depois do import e antes das outras funções
-"""
-
 # ==================== SALVAR APÓS CADA AÇÃO ====================
 from __main__ import aventuras, salvar_jogadores
 
@@ -53,45 +48,6 @@ def create_player(uid, nome):
             'escudo': False, 'mortes': 0, 'em_combate': False, 'em_acao': None,
         }
         salvar_jogadores()  # ⭐ SALVAR
-
-# ==================== TAMBÉM NO COMBATE ====================
-"""
-No seu combate.py, adicione salvar_jogadores() em:
-
-1. Depois de VITÓRIA:
-    xp = self.mob['xp']
-    p['em_combate'] = False
-    lvl_up = gain_xp(self.uid, xp)
-    salvar_jogadores()  # ⭐ AQUI
-
-2. Depois de DERROTA no Bater:
-    elif morreu:
-        p['em_combate'] = False
-        salvar_jogadores()  # ⭐ AQUI
-
-3. Depois de DERROTA no Defender:
-    if morreu:
-        p['em_combate'] = False
-        salvar_jogadores()  # ⭐ AQUI
-
-4. Depois de FUGA bem-sucedida:
-    if random.randint(1, 2) == 1:
-        p['em_combate'] = False
-        salvar_jogadores()  # ⭐ AQUI
-"""
-
-# ==================== TAMBÉM NO nether.py ====================
-"""
-Adicione o mesmo no nether.py:
-
-1. Depois de VITÓRIA Blaze:
-    p['em_combate'] = False
-    salvar_jogadores()  # ⭐ AQUI
-
-2. Depois de DERROTA Blaze:
-    p['em_combate'] = False
-    salvar_jogadores()  # ⭐ AQUI
-"""
 
 # ==================== FUNÇÕES ====================
 def get_player(uid):
@@ -199,16 +155,25 @@ class LocaisView(discord.ui.View):
             
             await i.response.send_message(embed=embed, ephemeral=True)
     
-    @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
-    async def nether(self, i: discord.Interaction, b: discord.ui.Button):
-        if i.user.id != self.uid:
-            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
-            return
-        
-        p = get_player(self.uid)
-        if p['level'] < 5:
-            await i.response.send_message("❌ Nível mínimo: 5", ephemeral=True)
-            return
+   @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
+async def nether(self, i: discord.Interaction, b: discord.ui.Button):
+    if i.user.id != self.uid:
+        await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+        return
+    
+    p = get_player(self.uid)
+    if p['level'] < 5:
+        await i.response.send_message("❌ Nível mínimo: 5", ephemeral=True)
+        return
+    
+    p['local'] = 'nether'
+    
+    from .nether import NetherMenuView
+    
+    view = NetherMenuView(self.uid, self.msg)
+    embed = discord.Embed(title="🔥 Você está no Nether!", description="Escolha um local:", color=0xff4500)
+    await self.msg.edit(embed=embed, view=view)
+    await i.response.send_message("🔥 Bem-vindo ao Nether!", ephemeral=True)
         
         p['local'] = 'nether'
         # Marcar que está em combate
