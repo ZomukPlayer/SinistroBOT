@@ -210,7 +210,7 @@ class CombateBlazeView(discord.ui.View):
         recuperar_hp = random.randint(3, 5)
         p['hp'] = min(20, p['hp'] + recuperar_hp)
         
-        desc = f"🍗 Você comeu durante a batalha!\n\n"
+        desc = f"🍗 Comeu! \n\n"
         desc += f"Regenerou **{recuperar_hp} HP**!\n"
         desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
         desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
@@ -219,6 +219,45 @@ class CombateBlazeView(discord.ui.View):
         
         await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
 
+class NetherMenuView(discord.ui.View):
+    def __init__(self, uid, msg):
+        super().__init__(timeout=None)
+        self.uid = uid
+        self.msg = msg
+    
+    @discord.ui.button(label="🔥 Fortaleza (Blaze)", style=discord.ButtonStyle.danger)
+    async def fortaleza(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        p['em_combate'] = True
+        
+        view = CombateBlazeView(self.uid, self.msg)
+        desc = f"**Blaze Infernal**\n💪 HP: 15\n\nEscolha sua ação:"
+        embed = discord.Embed(title="🔥 FORTALEZA DO NETHER!", description=desc, color=0xff4500)
+        await self.msg.edit(embed=embed, view=view)
+        await i.response.send_message(embed=discord.Embed(title="🔥 BLAZE APARECEU!", description="Um **Blaze** explosivo apareceu na fortaleza!", color=0xff0000), ephemeral=True)
+    
+    @discord.ui.button(label="🐷 Bastião (Piglin)", style=discord.ButtonStyle.primary)
+    async def bastiao(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        from .combate import CombateView
+        
+        p = get_player(self.uid)
+        p['em_combate'] = True
+        
+        mob = MOBS['🐷']
+        view = CombateView(self.uid, mob, self.msg)
+        desc = f"**Piglin Feroz**\n💪 HP: {mob['hp'][1]}\n\nEscolha sua ação:"
+        embed = discord.Embed(title="⚔️ BASTIÃO!", description=desc, color=0xff8c00)
+        await self.msg.edit(embed=embed, view=view)
+        await i.response.send_message(embed=discord.Embed(title="🐷 PIGLIN APARECEU!", description="Um **Piglin** apareceu no bastião!", color=0xff0000), ephemeral=True)
+        
 class NetherMelhorado(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
