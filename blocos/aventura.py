@@ -154,8 +154,10 @@ class LocaisView(discord.ui.View):
                 embed = discord.Embed(title="⛏️ Minério", description=desc, color=0x808080)
             
             await i.response.send_message(embed=embed, ephemeral=True)
-    
-   @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
+
+# BOTAO NETHER
+
+@discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
 async def nether(self, i: discord.Interaction, b: discord.ui.Button):
     if i.user.id != self.uid:
         await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
