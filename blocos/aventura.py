@@ -155,9 +155,7 @@ class LocaisView(discord.ui.View):
             
             await i.response.send_message(embed=embed, ephemeral=True)
 
-# BOTAO NETHER
-
-@discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="🔥 Nether (Lv5+)", style=discord.ButtonStyle.danger)
 async def nether(self, i: discord.Interaction, b: discord.ui.Button):
     if i.user.id != self.uid:
         await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
@@ -176,9 +174,7 @@ async def nether(self, i: discord.Interaction, b: discord.ui.Button):
     embed = discord.Embed(title="🔥 Você está no Nether!", description="Escolha um local:", color=0xff4500)
     await self.msg.edit(embed=embed, view=view)
     await i.response.send_message("🔥 Bem-vindo ao Nether!", ephemeral=True)
-
-# DESERTO
-
+    
     @discord.ui.button(label="🏜️ Deserto (Lv3+)", style=discord.ButtonStyle.secondary)
     async def deserto(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
