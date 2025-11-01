@@ -169,20 +169,20 @@ class LocaisView(discord.ui.View):
         
         await i.response.send_message(embed=embed, ephemeral=True)
     
-    @discord.ui.button(label="🌌 The End (7👁️)", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="🌌 The End (5👁️)", style=discord.ButtonStyle.success)
     async def the_end(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
             await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
             return
         
-        if not has_item(self.uid, '👁️', 7):
+        if not has_item(self.uid, '👁️', 5):
             olhos = get_player(self.uid)['itens'].get('👁️', 0)
-            await i.response.send_message(f"❌ Você precisa de 7 Olhos do Fim!\n\n👁️ Você tem: {olhos}/5", ephemeral=True)
+            await i.response.send_message(f"❌ Você precisa de 5 Olhos do Fim!\n\n👁️ Você tem: {olhos}/5", ephemeral=True)
             return
         
         p = get_player(self.uid)
         p['local'] = 'the_end'
-        remove_item(self.uid, '👁️', 7)
+        remove_item(self.uid, '👁️', 5)
         
         from .end import CristaisView
         
@@ -194,6 +194,41 @@ class LocaisView(discord.ui.View):
         await self.msg.edit(view=view)
         
         await i.response.send_message("🌌 Bem-vindo ao The End!", ephemeral=True)
+
+class MultiplayerView(discord.ui.View):
+    def __init__(self, uid):
+        super().__init__(timeout=60)
+        self.uid = uid
+    
+    @discord.ui.button(label="🏆 Ranking", style=discord.ButtonStyle.primary)
+    async def ranking(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        ranking_list = sorted(aventuras.items(), key=lambda x: (x[1]['level'], x[1]['xp']), reverse=True)[:5]
+        
+        desc = "🏆 **TOP 5 JOGADORES**\n\n"
+        
+        for idx, (uid, player) in enumerate(ranking_list, 1):
+            emoji = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"]
+            desc += f"{emoji[idx-1]} **{player['nome']}** - Lv. {player['level']}\n"
+        
+        embed = discord.Embed(title="🏆 Ranking", description=desc, color=0xffd700)
+        await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="⚔️ Duelo", style=discord.ButtonStyle.danger)
+    async def duelo(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        embed = discord.Embed(
+            title="⚔️ DUELO",
+            description="Use os comandos:\n\n`MS!duelo casual @usuario` - Duelo casual\n`MS!duelo arena @usuario` - Duelo arena",
+            color=0xff0000
+        )
+        await i.response.send_message(embed=embed, ephemeral=True)
 
 class OutrosView(discord.ui.View):
     def __init__(self, uid):
@@ -495,6 +530,17 @@ class AventuraView(discord.ui.View):
         
         await i.response.send_message(embed=discord.Embed(title="😴 Dormiu!", description="Recuperou TODO HP e fome!\n❤️ 20/20 | 🍖 10/10", color=0x4169e1), ephemeral=True)
         await self.update_embed()
+    
+    @discord.ui.button(label="👥 Multiplayer", style=discord.ButtonStyle.blurple, row=2)
+    async def multiplayer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        view = MultiplayerView(self.uid)
+        embed = discord.Embed(title="👥 Multiplayer", description="Escolha uma opção:", color=0x7289da)
+        await i.response.defer()
+        await i.followup.send(embed=embed, view=view, ephemeral=True)
     
     @discord.ui.button(label="📋 Outros", style=discord.ButtonStyle.secondary, row=2)
     async def outros(self, i: discord.Interaction, b: discord.ui.Button):
