@@ -143,7 +143,7 @@ class CombateBlazeView(discord.ui.View):
             p['local'] = 'floresta'
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O Blaze foi muito forte...\n"
-            desc += f"Perdeu 1 nível e TODOS os itens!"
+            desc += f"blaze e o goat pai"
             
             await salvar_jogadores()
             
@@ -230,7 +230,7 @@ class CombateBlazeView(discord.ui.View):
         recuperar_hp = random.randint(3, 5)
         p['hp'] = min(20, p['hp'] + recuperar_hp)
         
-        desc = f"🍗 Comeu! \n\n"
+        desc = f"🍗 Comeu!! \n\n"
         desc += f"Regenerou **{recuperar_hp} HP**!\n"
         desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
         desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
