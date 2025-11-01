@@ -245,7 +245,7 @@ async def serverinfo_cmd(ctx):
 # ==================== CARREGAR MÓDULOS ====================
 async def load_modules():
     """Carrega todos os módulos de blocos"""
-    modules = ['blocos.aventura', 'blocos.combate', 'blocos.crafting', 'blocos.multiplayer', 'blocos.nether', 'blocos.end']
+    modules = ['blocos.aventura', 'blocos.combate', 'blocos.crafting', 'blocos.multiplayer', 'blocos.nether', 'blocos.end','blocos.pvp']
     
     for module in modules:
         try:
@@ -278,5 +278,6 @@ if not token or token.strip() == "":
     exit()
 else:
     print("✅ Token carregado com sucesso")
-    print("🎮 Minecraft 2 - FASE 2.0 (Modular com PostgreSQL)")
+    print("o goat ne")
     bot.run(token)
+
