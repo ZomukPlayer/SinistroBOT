@@ -7,7 +7,7 @@ Vitória: 1000 XP + embed roxo especial
 import discord
 from discord.ext import commands
 import random
-from __main__ import aventuras
+from __main__ import aventuras, salvar_jogadores
 
 def get_player(uid):
     return aventuras.get(uid)
@@ -20,6 +20,13 @@ def add_item(uid, item, qty=1):
     p = get_player(uid)
     if p:
         p['itens'][item] = p['itens'].get(item, 0) + qty
+
+def remove_item(uid, item, qty=1):
+    p = get_player(uid)
+    if p and has_item(uid, item, qty):
+        p['itens'][item] -= qty
+        if p['itens'][item] == 0:
+            del p['itens'][item]
 
 def calc_dmg(uid):
     p = get_player(uid)
@@ -133,6 +140,32 @@ class CristaisView(discord.ui.View):
         
         await self.update_embed()
     
+    @discord.ui.button(label="🍗 Comer", style=discord.ButtonStyle.success, row=1)
+    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é sua aventura!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        
+        if not has_item(self.uid, '🍗', 1):
+            await i.response.send_message(embed=discord.Embed(title="❌ Sem Comida", description="Você precisa de 🍗 Comida!", color=0xff0000), ephemeral=True)
+            return
+        
+        remove_item(self.uid, '🍗', 1)
+        recuperar_hp = random.randint(3, 5)
+        p['hp'] = min(20, p['hp'] + recuperar_hp)
+        
+        desc = f"🍗 Comeu! \n\n"
+        desc += f"Regenerou **{recuperar_hp} HP**!\n"
+        desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
+        desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
+        
+        await salvar_jogadores()
+        
+        await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
+        await self.update_embed()
+    
     @discord.ui.button(label="⚔️ Enfrentar Dragão", style=discord.ButtonStyle.danger)
     async def dragao(self, i: discord.Interaction, b: discord.ui.Button):
         if i.user.id != self.uid:
@@ -173,9 +206,8 @@ class DragaoView(discord.ui.View):
         if not p['armadura']:
             p['hp'] = 0
             morreu = True
-            dmg_dragao = 999  # Insta kill
+            dmg_dragao = 999
         else:
-            # Com armadura, tira dano normal
             dmg_dragao = random.uniform(10, 15)
             morreu = apply_dmg(self.uid, dmg_dragao)
             p = get_player(self.uid)
@@ -196,12 +228,14 @@ class DragaoView(discord.ui.View):
                 desc += f"🐉 Dragão deu: **{dmg_dragao:.1f} dmg**\n\n💀 **VOCÊ MORREU!**"
         
         if self.dragao_hp <= 0:
-            # VITÓRIA!
             xp_ganho = 1000
             netherita_ganho = 10
             
+            p['em_combate'] = False
             gain_xp(self.uid, xp_ganho)
             add_item(self.uid, '🔷', netherita_ganho)
+            
+            await salvar_jogadores()
             
             p = get_player(self.uid)
             
@@ -218,6 +252,9 @@ class DragaoView(discord.ui.View):
             self.stop()
         
         elif morreu:
+            p['em_combate'] = False
+            await salvar_jogadores()
+            
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             if not p['armadura']:
                 desc += f"🐉 O Dragão te destruiu!\n"
@@ -249,7 +286,6 @@ class DragaoView(discord.ui.View):
         
         p = get_player(self.uid)
         
-        # Dragão dá insta kill sem armadura mesmo defendendo
         if not p['armadura']:
             p['hp'] = 0
             morreu = True
@@ -257,12 +293,14 @@ class DragaoView(discord.ui.View):
             desc += f"🐉 O Dragão é muito poderoso!\n"
             desc += f"Nem o escudo pode salvá-lo sem armadura!"
             
+            p['em_combate'] = False
+            await salvar_jogadores()
+            
             await i.response.send_message(embed=discord.Embed(title="💀 Insta Kill!", description=desc, color=0xff0000), ephemeral=True)
             await self.msg.edit(view=None)
             self.stop()
             return
         
-        # Com armadura + escudo, reduz bastante
         dmg_dragao = random.uniform(10, 15) * 0.3
         morreu = apply_dmg(self.uid, dmg_dragao, defending=True)
         p = get_player(self.uid)
@@ -275,6 +313,9 @@ class DragaoView(discord.ui.View):
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if morreu:
+            p['em_combate'] = False
+            await salvar_jogadores()
+            
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O Dragão foi muito forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
@@ -287,6 +328,31 @@ class DragaoView(discord.ui.View):
             self.turno += 1
             embed = discord.Embed(title="🛡️ Defesa", description=desc, color=0x800080)
             await i.response.send_message(embed=embed, ephemeral=True)
+    
+    @discord.ui.button(label="🍗 Comer", style=discord.ButtonStyle.success, row=1)
+    async def comer(self, i: discord.Interaction, b: discord.ui.Button):
+        if i.user.id != self.uid:
+            await i.response.send_message("❌ Não é seu combate!", ephemeral=True)
+            return
+        
+        p = get_player(self.uid)
+        
+        if not has_item(self.uid, '🍗', 1):
+            await i.response.send_message(embed=discord.Embed(title="❌ Sem Comida", description="Você precisa de 🍗 Comida!", color=0xff0000), ephemeral=True)
+            return
+        
+        remove_item(self.uid, '🍗', 1)
+        recuperar_hp = random.randint(3, 5)
+        p['hp'] = min(20, p['hp'] + recuperar_hp)
+        
+        desc = f"🍗 Comeu! \n\n"
+        desc += f"Regenerou **{recuperar_hp} HP**!\n"
+        desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
+        desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
+        
+        await salvar_jogadores()
+        
+        await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
 
 class End(commands.Cog):
     def __init__(self, bot):
