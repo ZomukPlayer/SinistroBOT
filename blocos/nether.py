@@ -1,7 +1,7 @@
 """
 BLOCO NETHER MELHORADO
 Blazes: 15 HP, 5 dano + 1.5 fogo
-Varas de Blaze: 25% drop, usam para Olhos do Fim
+Varas de Blaze: 100% drop
 """
 import discord
 from discord.ext import commands
@@ -96,7 +96,6 @@ class CombateBlazeView(discord.ui.View):
             return
         
         dmg_player = calc_dmg(self.uid)
-        # Dano base: 4 + 0.5 fogo = 4.5 (sem armadura)
         dmg_blaze = 4.5
         
         self.blaze_hp -= dmg_player
@@ -105,44 +104,58 @@ class CombateBlazeView(discord.ui.View):
         
         desc = f"**Turno {self.turno}**\n"
         desc += f"⚔️ Você deu: **{dmg_player:.1f} dmg**\n"
-        desc += f"🔥 Blaze deu: **{dmg_blaze:.1f} dmg** (5 + 1.5 fogo)\n\n"
+        desc += f"🔥 Blaze deu: **{dmg_blaze:.1f} dmg**\n\n"
         desc += f"🔥 Blaze: {max(0, self.blaze_hp):.0f} HP\n"
         desc += f"❤️ Você: {p['hp']:.0f} HP"
         
         if self.blaze_hp <= 0:
             xp = 25
             p['em_combate'] = False
+            p['local'] = 'floresta'
             lvl_up = gain_xp(self.uid, xp)
             p = get_player(self.uid)
             
             desc = f"🎉 **VITÓRIA!**\n\n"
             desc += f"Derrotou o Blaze!\n"
-            desc += f"+{xp} XP"
+            desc += f"+{xp} XP\n"
+            desc += f"+1x 🔱 Vara de Blaze!"
             
-            # 20% de chance de dropar Vara de Blaze
-            if random.randint(1, 5) == 1:
-                add_item(self.uid, '🔱', 1)
-                desc += f"\n+1x 🔱 Vara de Blaze!"
+            add_item(self.uid, '🔱', 1)
             
             if lvl_up:
                 desc += f"\n\n🎉 **LEVEL UP!** Nível {p['level']}!"
             
-            await salvar_jogadores()  # ⭐ SALVAR
+            await salvar_jogadores()
             
             await i.response.send_message(embed=discord.Embed(title="🔥 Vitória!", description=desc, color=0xff4500), ephemeral=True)
-            await self.msg.edit(view=None)
+            
+            # ⭐ VOLTAR PRA FLORESTA
+            barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+            embed_volta = discord.Embed(title="🌲 Floresta", description=f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']:.0f}/20 | {barra}\n\nVocê voltou para a floresta", color=0x00ff00)
+            from .aventura import AventuraView
+            view_volta = AventuraView(self.uid, self.msg)
+            await self.msg.edit(embed=embed_volta, view=view_volta)
+            
             self.stop()
         
         elif morreu:
             p['em_combate'] = False
+            p['local'] = 'floresta'
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"O Blaze foi muito forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
             
-            await salvar_jogadores()  # ⭐ SALVAR
+            await salvar_jogadores()
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
-            await self.msg.edit(view=None)
+            
+            # ⭐ VOLTAR PRA FLORESTA
+            barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+            embed_volta = discord.Embed(title="🌲 Floresta", description=f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']:.0f}/20 | {barra}\n\nVocê voltou para a floresta", color=0x00ff00)
+            from .aventura import AventuraView
+            view_volta = AventuraView(self.uid, self.msg)
+            await self.msg.edit(embed=embed_volta, view=view_volta)
+            
             self.stop()
         
         else:
@@ -165,7 +178,6 @@ class CombateBlazeView(discord.ui.View):
             await i.response.send_message(embed=embed, ephemeral=True)
             return
         
-        # Dano reduzido: (5 + 1.5) * 0.3 = 1.95
         dmg_blaze = 6.5 * 0.3
         morreu = apply_dmg(self.uid, dmg_blaze, defending=True)
         p = get_player(self.uid)
@@ -179,14 +191,22 @@ class CombateBlazeView(discord.ui.View):
         
         if morreu:
             p['em_combate'] = False
+            p['local'] = 'floresta'
             desc = f"💀 **VOCÊ MORREU!**\n\n"
             desc += f"Mesmo com a defesa, o Blaze foi forte...\n"
             desc += f"Perdeu 1 nível e TODOS os itens!"
             
-            await salvar_jogadores()  # ⭐ SALVAR
+            await salvar_jogadores()
             
             await i.response.send_message(embed=discord.Embed(title="💀 Derrota!", description=desc, color=0xff0000), ephemeral=True)
-            await self.msg.edit(view=None)
+            
+            # ⭐ VOLTAR PRA FLORESTA
+            barra = "🍖" * p['fome'] + "⬛" * (10 - p['fome'])
+            embed_volta = discord.Embed(title="🌲 Floresta", description=f"**{p['nome']}** | Lv. {p['level']}\n❤️ {p['hp']:.0f}/20 | {barra}\n\nVocê voltou para a floresta", color=0x00ff00)
+            from .aventura import AventuraView
+            view_volta = AventuraView(self.uid, self.msg)
+            await self.msg.edit(embed=embed_volta, view=view_volta)
+            
             self.stop()
         
         else:
@@ -215,7 +235,7 @@ class CombateBlazeView(discord.ui.View):
         desc += f"❤️ HP: {p['hp']:.0f}/20\n\n"
         desc += f"🍗 Comida restante: {p['itens'].get('🍗', 0)}/16"
         
-        await salvar_jogadores()  # ⭐ SALVAR
+        await salvar_jogadores()
         
         await i.response.send_message(embed=discord.Embed(title="🍗 Comeu!", description=desc, color=0xFF6347), ephemeral=True)
 
@@ -257,7 +277,7 @@ class NetherMenuView(discord.ui.View):
         embed = discord.Embed(title="⚔️ BASTIÃO!", description=desc, color=0xff8c00)
         await self.msg.edit(embed=embed, view=view)
         await i.response.send_message(embed=discord.Embed(title="🐷 PIGLIN APARECEU!", description="Um **Piglin** apareceu no bastião!", color=0xff0000), ephemeral=True)
-        
+
 class NetherMelhorado(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
